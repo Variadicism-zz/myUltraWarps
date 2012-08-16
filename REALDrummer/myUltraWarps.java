@@ -1152,9 +1152,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						+ ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
 		} else if (command_label.equalsIgnoreCase("mUW")
 				|| command_label.equalsIgnoreCase("myUltraWarps")) {
-			String[] new_parameters = new String[parameters.length - 1];
-			for (int i = 1; i < parameters.length; i++)
-				new_parameters[i] = parameters[i];
+			String[] new_parameters = new String[0];
+			if (parameters.length > 0) {
+				new_parameters = new String[parameters.length - 1];
+				for (int i = 1; i < parameters.length; i++)
+					new_parameters[i - 1] = parameters[i];
+			}
 			success = onCommand(sender, command, parameters[0], new_parameters);
 		} else if (command_label.equalsIgnoreCase("top")) {
 			success = true;
@@ -2844,26 +2847,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			out.newLine();
 			out.write("Be warned: Side effects of turning on the autosave features for warps or for switches include processing power highs and serious lag, especially on big servers.");
 			out.newLine();
-			out.write("Do you want myUltraWarps to automatically save the warps file every time a change is made?");
+			out.write("Do you want myUltraWarps to automatically save the warps file every time a change is made? ");
 			out.newLine();
 			if (autosave_warps)
-				out.write("Right now, autosave is on for warps.");
+				out.write("   Right now, autosave is on for warps.");
 			else
-				out.write("Right now, autosave is off for warps.");
+				out.write("   Right now, autosave is off for warps.");
 			out.newLine();
-			out.write("Do you want myUltraWarps to automatically save the switches file every time a change is made?");
+			out.write("Do you want myUltraWarps to automatically save the switches file every time a change is made? ");
 			out.newLine();
 			if (autosave_switches)
-				out.write("Right now, autosave is on for switches.");
+				out.write("   Right now, autosave is on for switches.");
 			else
-				out.write("Right now, autosave is off for switches.");
+				out.write("   Right now, autosave is off for switches.");
 			out.newLine();
-			out.write("Do you want myUltraWarps to automatically save the config file every time a change is made?");
+			out.write("Do you want myUltraWarps to automatically save the config file every time a change is made? ");
 			out.newLine();
 			if (autosave_config)
-				out.write("Right now, autosave is on for the config.");
+				out.write("   Right now, autosave is on for the config.");
 			else
-				out.write("Right now, autosave is off for the config.");
+				out.write("   Right now, autosave is off for the config.");
 			out.newLine();
 			out.newLine();
 			out.write("You can set the messages that appear when someone teleports to the spawn point for each world.");
