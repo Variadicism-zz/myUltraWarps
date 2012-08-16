@@ -3374,10 +3374,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			parsing_no_warp_message = false;
 			for (int j = extra_param + 1; j < parameters.length; j++) {
 				if (parameters[j].toLowerCase().startsWith("type:o")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					listed = true;
 					restricted = false;
 					if (!result_message.equals(""))
@@ -3393,10 +3392,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ ChatColor.WHITE + "open " + ChatColor.GREEN
 								+ "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:s")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					listed = false;
 					restricted = false;
 					if (!result_message.equals(""))
@@ -3411,10 +3409,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ ChatColor.GRAY + "secret " + ChatColor.GREEN
 								+ "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:a")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					listed = true;
 					restricted = true;
 					if (!result_message.equals(""))
@@ -3429,10 +3426,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ ChatColor.RED + "advertised "
 								+ ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:p")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					listed = false;
 					restricted = true;
 					if (!result_message.equals(""))
@@ -3448,10 +3444,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ ChatColor.DARK_RED + "private "
 								+ ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("name:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					String temp_old_name = name;
 					name = parameters[j].substring(5);
 					if (!name.equalsIgnoreCase("info")
@@ -3508,24 +3503,21 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						name = temp_old_name;
 					}
 				} else if (parameters[j].toLowerCase().startsWith("warp:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					warp_message = parameters[j].substring(5);
 					parsing_warp_message = true;
 				} else if (parameters[j].toLowerCase().startsWith("nowarp:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					no_warp_message = parameters[j].substring(7);
 					parsing_no_warp_message = true;
 				} else if (parameters[j].toLowerCase().startsWith("giveto:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					String temp_old_owner = owner;
 					owner = getFullName(parameters[j].substring(7));
 					if (!result_message.equals(""))
@@ -3565,10 +3557,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						result_message = result_message + ChatColor.GREEN
 								+ "I also updated the no warp message.";
 				} else if (parameters[j].toLowerCase().startsWith("list:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					String[] listed_users_list = parameters[j].substring(5)
 							.split(",");
 					if (listed_users_list.length > 0
@@ -3698,10 +3689,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						}
 					}
 				} else if (parameters[j].toLowerCase().startsWith("unlist:")) {
-					result_message = result_message
-							+ stopParsingMessages(warp_message,
-									no_warp_message, name, owner,
-									player_is_owner, sender, result_message);
+					result_message = stopParsingMessages(warp_message,
+							no_warp_message, name, owner, player_is_owner,
+							sender, result_message);
 					String[] unlisted_users_list = parameters[j].substring(7)
 							.split(",");
 					if (unlisted_users_list.length > 0
@@ -3840,9 +3830,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				else if (parsing_no_warp_message)
 					no_warp_message = no_warp_message + " " + parameters[j];
 			}
-			result_message = result_message
-					+ stopParsingMessages(warp_message, no_warp_message, name,
-							owner, player_is_owner, sender, result_message);
+			result_message = stopParsingMessages(warp_message, no_warp_message,
+					name, owner, player_is_owner, sender, result_message);
 			if (!name.equalsIgnoreCase("info")
 					&& !name.equalsIgnoreCase("list")
 					&& !name.equals("all")
