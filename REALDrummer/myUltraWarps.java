@@ -1,14 +1,27 @@
 package REALDrummer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.XMLEvent;
+
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -38,7 +51,7 @@ import org.bukkit.World;
 
 public class myUltraWarps extends JavaPlugin implements Listener {
 	public static Server server;
-	private final ConsoleCommandSender console = getServer().getConsoleSender();
+	private static ConsoleCommandSender console;
 	private static final String[] enable_messages = { "Scotty can now beam you up.", "The warps have entered the building.",
 			"These ARE the warps you're looking for.", "May the warps be with you.", "Let's rock these warps.", "Warp! Warp! Warp! Warp! Warp! Warp!",
 			"What warp through yonder server breaks?", "Wanna see me warp to that mountain and back?\nWanna see me do it again?",
@@ -66,15 +79,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static HashMap<String, ArrayList<UltraWarp>> warp_histories = new HashMap<String, ArrayList<UltraWarp>>();
 	private static HashMap<String, Integer> last_warp_indexes = new HashMap<String, Integer>();
 	private HashMap<String, HashMap<UltraSwitch, String>> broken_switch_owners_to_inform = new HashMap<String, HashMap<UltraSwitch, String>>();
-	// users_to_inform_of_warp_deletion = HashMap<owner, warp name>
+	// users_to_inform_of_warp_renaming = HashMap<owner, warp name>
 	private static HashMap<String, String> users_to_inform_of_warp_renaming = new HashMap<String, String>();
 	private static Plugin Vault = null;
 	private static Permission permissions = null;
 	private static Economy economy = null;
+	
+	//TODO make it inform admins of myUltraWarps updates on login
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
 		server = getServer();
+		console = server.getConsoleSender();
 		// register this class as a listener
 		server.getPluginManager().registerEvents(this, this);
 		// set up the warp_histories list for /back
@@ -84,6 +100,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		loadTheWarps(console);
 		loadTheSwitches(console);
 		loadTheConfig(console);
+		checkForUpdates(console);
 		// load the help pages
 		for (int i = 0; i < 43; i++) {
 			Object[] help_line = new Object[4];
@@ -623,7 +640,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("jump")) {
+		} else if (command_label.equalsIgnoreCase("jump") || command_label.equalsIgnoreCase("j")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.jump") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -830,7 +847,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					new_parameters[i - 1] = parameters[i];
 			}
 			success = onCommand(sender, command, parameters[0], new_parameters);
-		} else if (command_label.equalsIgnoreCase("top")) {
+		} else if (command_label.equalsIgnoreCase("top") || command_label.equalsIgnoreCase("t")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.top") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -1439,9 +1456,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		boolean failed = false;
 		warps = new ArrayList<UltraWarp>();
 		// check the warps file
-		File warps_file = new File(this.getDataFolder(), "warps.txt");
+		File warps_file = new File(getDataFolder(), "warps.txt");
 		if (!warps_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				console.sendMessage(ChatColor.YELLOW + "I couldn't find a warps.txt file. I'll make a new one.");
 				warps_file.createNewFile();
@@ -1527,7 +1544,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 warp from file.");
 				else
 					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-							+ " tried to load the server's warps from file, but there were no warps on file to load.");
+							+ " loaded the server's warps from file, but there were no warps on file.");
 		}
 	}
 
@@ -1535,9 +1552,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		// check the switches file
 		boolean failed = false;
 		switches = new ArrayList<UltraSwitch>();
-		File switches_file = new File(this.getDataFolder(), "switches.txt");
+		File switches_file = new File(getDataFolder(), "switches.txt");
 		if (!switches_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find a switches.txt file. I'll make a new one.");
 				switches_file.createNewFile();
@@ -1600,7 +1617,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 switch from file.");
 				else
 					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-							+ " tried to load the server's switches from file, but there were no switches on file to load.");
+							+ " loaded the server's switches from file, but there were no switches on file.");
 		}
 	}
 
@@ -1648,9 +1665,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		per_player_settings = new HashMap<String, Object[]>();
 		group_settings = new HashMap<String, Object[]>();
 		// check the config file
-		File config_file = new File(this.getDataFolder(), "config.txt");
+		File config_file = new File(getDataFolder(), "config.txt");
 		if (!config_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find a config.txt file. I'll make a new one.");
 				config_file.createNewFile();
@@ -1882,7 +1899,124 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			saveTheConfig(sender, false);
 			sender.sendMessage(ChatColor.GREEN + "Your configurations have been loaded.");
 			if (sender instanceof Player)
-				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the myUltraWarps config from file.");
+				console.sendMessage(ChatColor.GREEN + sender.getName() + " loaded the myUltraWarps config from file.");
+		}
+	}
+
+	private void checkForUpdates(CommandSender sender) {
+		// check for updates
+		URL url = null;
+		try {
+			url = new URL("http://dev.bukkit.org/server-mods/myultrawarps-v0/files.rss/");
+		} catch (MalformedURLException exception) {
+			sender.sendMessage("Nooo! Bad U.R.L.! Bad U.R.L.! The updater screwed up!");
+		}
+		if (url != null) {
+			String new_version_name = null, new_version_link = null;
+			// Obtain the results of the project's file feed
+			try {
+				// Set header values intial to the empty string
+				String temp_title = "";
+				String temp_link = "";
+				// Setup a new eventReader
+				InputStream in = null;
+				try {
+					in = url.openStream();
+				} catch (IOException exception) {
+					sender.sendMessage(ChatColor.DARK_RED + "Gah! IOException in the Updater!");
+					exception.printStackTrace();
+				}
+				XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(in);
+				// Read the XML document
+				while (eventReader.hasNext()) {
+					XMLEvent event = eventReader.nextEvent();
+					if (event.isStartElement()) {
+						if (event.asStartElement().getName().getLocalPart().equals("title")) {
+							event = eventReader.nextEvent();
+							temp_title = event.asCharacters().getData();
+							continue;
+						}
+						if (event.asStartElement().getName().getLocalPart().equals("link")) {
+							event = eventReader.nextEvent();
+							temp_link = event.asCharacters().getData();
+							continue;
+						}
+					} else if (event.isEndElement()) {
+						if (event.asEndElement().getName().getLocalPart().equals("item")) {
+							new_version_name = temp_title;
+							new_version_link = temp_link;
+							break;
+						}
+					}
+				}
+			} catch (XMLStreamException e) {
+				sender.sendMessage(ChatColor.DARK_RED + "Oh, nos! There was an error in the myUltraWarps updater!");
+			}
+			boolean new_version_is_out = false;
+			String version = getDescription().getVersion(), newest_online_version = "";
+			if (new_version_name.split("v").length == 2) {
+				newest_online_version = new_version_name.split("v")[new_version_name.split("v").length - 1].split(" ")[0];
+				// get the newest file's version number
+				if (!version.contains("-DEV") && !version.contains("-PRE") && !version.equalsIgnoreCase(newest_online_version))
+					try {
+						if (Double.parseDouble(version) < Double.parseDouble(newest_online_version))
+							new_version_is_out = true;
+					} catch (NumberFormatException exception) {
+					}
+			} else
+				sender.sendMessage(ChatColor.RED
+						+ "Oh, no! REALDrummer forgot to put the version number in the title of the plugin on BukkitDev! The updater won't work! Quick! Tell him he messed up and he needs to fix it right away!");
+			if (new_version_is_out) {
+				String fileLink = null;
+				try {
+					// Open a connection to the page
+					BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(new_version_link).openConnection().getInputStream()));
+					String line;
+					while ((line = reader.readLine()) != null)
+						// Search for the download link
+						if (line.contains("<li class=\"user-action user-action-download\">"))
+							// Get the raw link
+							fileLink = line.split("<a href=\"")[1].split("\">Download</a>")[0];
+					reader.close();
+					reader = null;
+				} catch (Exception exception) {
+					sender.sendMessage(ChatColor.DARK_RED + "Uh-oh! The myUltraWarps updater couldn't contact bukkitdev.org!");
+					exception.printStackTrace();
+					fileLink = null;
+				}
+				if (fileLink != null) {
+					File folder = new File("plugins/myUltraWarps");
+					if (!new File(folder, "myUltraWarps.jar").exists()) {
+						BufferedInputStream in = null;
+						FileOutputStream fout = null;
+						try {
+							// Download the file
+							url = new URL(fileLink);
+							in = new BufferedInputStream(url.openStream());
+							fout = new FileOutputStream(folder.getAbsolutePath() + "/myUltraWarps.jar");
+							byte[] data = new byte[1024];
+							int count;
+							while ((count = in.read(data, 0, 1024)) != -1)
+								fout.write(data, 0, count);
+							sender.sendMessage(ChatColor.GREEN + "" + ChatColor.UNDERLINE + "'DING!' Your myUltraWarps v" + newest_online_version
+									+ " is ready and it smells AWESOME!! I downloaded it to your myUltraWarps folder! Go get it!");
+						} catch (Exception ex) {
+							sender.sendMessage(ChatColor.DARK_RED + "Shoot. myUltraWarps v" + newest_online_version
+									+ " is out, but something messed up the download. You're gonna have to go to BukkitDev and get it yourself. Sorry.");
+						} finally {
+							try {
+								if (in != null)
+									in.close();
+								if (fout != null)
+									fout.close();
+							} catch (Exception ex) {
+							}
+						}
+					} else
+						sender.sendMessage(ChatColor.RED
+								+ "O_O Why is the newest version of myUltraWarps still sitting in your plugin folder?! Hurry up and put it on your server!");
+				}
+			}
 		}
 	}
 
@@ -1890,9 +2024,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private void saveTheWarps(CommandSender sender, boolean display_message) {
 		boolean failed = false;
 		// check the warps file
-		File warps_file = new File(this.getDataFolder(), "warps.txt");
+		File warps_file = new File(getDataFolder(), "warps.txt");
 		if (!warps_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find a warps.txt file. I'll make a new one.");
 				warps_file.createNewFile();
@@ -1939,9 +2073,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private void saveTheSwitches(CommandSender sender, boolean display_message) {
 		boolean failed = false;
 		// check the switches file
-		File switches_file = new File(this.getDataFolder(), "switches.txt");
+		File switches_file = new File(getDataFolder(), "switches.txt");
 		if (!switches_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find a switches.txt file. I'll make a new one.");
 				switches_file.createNewFile();
@@ -1986,9 +2120,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private void saveTheConfig(CommandSender sender, boolean display_message) {
 		boolean failed = false;
 		// check the config file
-		File config_file = new File(this.getDataFolder(), "config.txt");
+		File config_file = new File(getDataFolder(), "config.txt");
 		if (!config_file.exists()) {
-			this.getDataFolder().mkdir();
+			getDataFolder().mkdir();
 			try {
 				sender.sendMessage(ChatColor.YELLOW + "I couldn't find a config.txt file. I'll make a new one.");
 				config_file.createNewFile();
