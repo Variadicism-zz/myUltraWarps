@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -84,8 +83,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Plugin Vault = null;
 	private static Permission permissions = null;
 	private static Economy economy = null;
-	
-	//TODO make it inform admins of myUltraWarps updates on login
+
+	// TODO make it inform admins of myUltraWarps updates on login
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
@@ -353,24 +352,22 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 	}
 
-	public boolean onCommand(CommandSender sender, Command command, String command_label, String[] my_parameters) {
+	public boolean onCommand(CommandSender sender, Command cmd, String command, String[] my_parameters) {
 		parameters = my_parameters;
 		boolean success = false;
-		if (command_label.equalsIgnoreCase("setspawn")
-				|| (command_label.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("spawn"))) {
+		if (command.equalsIgnoreCase("setspawn") || (command.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("spawn"))) {
 			success = true;
 			if (sender instanceof Player && sender.hasPermission("myultrawarps.admin"))
 				setSpawn(sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.YELLOW + "You can't decide where the spawn point goes. You can't point it out to me. Sorry.");
 			else {
-				if (command_label.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("spawn"))
+				if (command.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("spawn"))
 					sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/set spawn" + ChatColor.RED + ".");
 				else
 					sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/setspawn" + ChatColor.RED + ".");
 			}
-		} else if (command_label.equalsIgnoreCase("sethome")
-				|| (command_label.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("home"))) {
+		} else if (command.equalsIgnoreCase("sethome") || (command.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("home"))) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.sethome") || sender.hasPermission("myultrawarps.sethome.other")
@@ -382,57 +379,54 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/sethome" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/set home" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("warplist") || command_label.equalsIgnoreCase("warpslist"))
-				|| ((command_label.equalsIgnoreCase("warp") || command_label.equalsIgnoreCase("warps")) && parameters.length > 0 && parameters[0]
-						.equalsIgnoreCase("list"))) {
+		} else if ((command.equalsIgnoreCase("warplist") || command.equalsIgnoreCase("warpslist"))
+				|| ((command.equalsIgnoreCase("warp") || command.equalsIgnoreCase("warps")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
 			success = true;
 			if (!(sender instanceof Player)
 					|| (sender.hasPermission("myultrawarps.list") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
 				warpList(sender);
 			else if (parameters.length == 0 || !parameters[0].equalsIgnoreCase("list"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " list" + ChatColor.RED + ".");
-		} else if (((command_label.equalsIgnoreCase("full") || command_label.equalsIgnoreCase("entire") || command_label.equalsIgnoreCase("complete"))
-				&& parameters.length > 1 && (parameters[0].equalsIgnoreCase("warp") || parameters[0].equalsIgnoreCase("warps")) && parameters[1]
-					.equalsIgnoreCase("list"))
-				|| (command_label.equalsIgnoreCase("fullwarplist") || command_label.equalsIgnoreCase("entirewarplist")
-						|| command_label.equalsIgnoreCase("completewarplist") || command_label.equalsIgnoreCase("fullwarpslist")
-						|| command_label.equalsIgnoreCase("entirewarpslist") || command_label.equalsIgnoreCase("completewarpslist"))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list"
+						+ ChatColor.RED + ".");
+		} else if (((command.equalsIgnoreCase("full") || command.equalsIgnoreCase("entire") || command.equalsIgnoreCase("complete")) && parameters.length > 1
+				&& (parameters[0].equalsIgnoreCase("warp") || parameters[0].equalsIgnoreCase("warps")) && parameters[1].equalsIgnoreCase("list"))
+				|| (command.equalsIgnoreCase("fullwarplist") || command.equalsIgnoreCase("entirewarplist") || command.equalsIgnoreCase("completewarplist")
+						|| command.equalsIgnoreCase("fullwarpslist") || command.equalsIgnoreCase("entirewarpslist") || command
+							.equalsIgnoreCase("completewarpslist"))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.list.full") || sender.hasPermission("myultrawarps.admin"))
 				fullWarpList(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ " warps list" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("switchlist") || command_label.equalsIgnoreCase("switcheslist"))
-				|| ((command_label.equalsIgnoreCase("switch") || command_label.equalsIgnoreCase("switches")) && parameters.length > 0 && parameters[0]
+		} else if ((command.equalsIgnoreCase("switchlist") || command.equalsIgnoreCase("switcheslist"))
+				|| ((command.equalsIgnoreCase("switch") || command.equalsIgnoreCase("switches")) && parameters.length > 0 && parameters[0]
 						.equalsIgnoreCase("list"))) {
 			success = true;
 			if (!(sender instanceof Player)
 					|| (sender.hasPermission("myultrawarps.list") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
 				switchList(sender);
 			else if (parameters.length == 0 || !parameters[0].equalsIgnoreCase("list"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " list" + ChatColor.RED + ".");
-		} else if (((command_label.equalsIgnoreCase("full") || command_label.equalsIgnoreCase("entire") || command_label.equalsIgnoreCase("complete"))
-				&& parameters.length > 1 && (parameters[0].equalsIgnoreCase("switch") || parameters[0].equalsIgnoreCase("switches")) && parameters[1]
-					.equalsIgnoreCase("list"))
-				|| (command_label.equalsIgnoreCase("fullswitchlist") || command_label.equalsIgnoreCase("entireswitchlist")
-						|| command_label.equalsIgnoreCase("completeswitchlist") || command_label.equalsIgnoreCase("fullswitcheslist")
-						|| command_label.equalsIgnoreCase("entireswitcheslist") || command_label.equalsIgnoreCase("completeswitcheslist"))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list"
+						+ ChatColor.RED + ".");
+		} else if (((command.equalsIgnoreCase("full") || command.equalsIgnoreCase("entire") || command.equalsIgnoreCase("complete")) && parameters.length > 1
+				&& (parameters[0].equalsIgnoreCase("switch") || parameters[0].equalsIgnoreCase("switches")) && parameters[1].equalsIgnoreCase("list"))
+				|| (command.equalsIgnoreCase("fullswitchlist") || command.equalsIgnoreCase("entireswitchlist")
+						|| command.equalsIgnoreCase("completeswitchlist") || command.equalsIgnoreCase("fullswitcheslist")
+						|| command.equalsIgnoreCase("entireswitcheslist") || command.equalsIgnoreCase("completeswitcheslist"))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.list.full") || sender.hasPermission("myultrawarps.admin"))
 				fullSwitchList(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ " switches list" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("spawn")) {
+		} else if (command.equalsIgnoreCase("spawn")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.spawn") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -441,10 +435,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.YELLOW + "You cannot warp! Stop trying to warp! You have no body! Stop trying to warp!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/spawn" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("createwarp")
-				|| command_label.equalsIgnoreCase("makewarp")
-				|| command_label.equalsIgnoreCase("setwarp")
-				|| ((command_label.equalsIgnoreCase("create") || command_label.equalsIgnoreCase("make") || command_label.equalsIgnoreCase("set")) && (parameters.length == 0 || !parameters[0]
+		} else if (command.equalsIgnoreCase("createwarp")
+				|| command.equalsIgnoreCase("makewarp")
+				|| command.equalsIgnoreCase("setwarp")
+				|| ((command.equalsIgnoreCase("create") || command.equalsIgnoreCase("make") || command.equalsIgnoreCase("set")) && (parameters.length == 0 || !parameters[0]
 						.equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
@@ -456,10 +450,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to name the warp!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("create") || command_label.equalsIgnoreCase("make") || command_label.equalsIgnoreCase("set"))
-				&& parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
+		} else if ((command.equalsIgnoreCase("create") || command.equalsIgnoreCase("make") || command.equalsIgnoreCase("set")) && parameters.length > 0
+				&& parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.create") || sender.hasPermission("myultrawarps.create.other")
@@ -470,9 +464,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length <= 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to name the warp!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " warp" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warpinfo")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
+						+ ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("warpinfo")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.warpinfo") || sender.hasPermission("myultrawarps.warpinfo.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -482,7 +476,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You need to tell me the name of the warp you want info on!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warpinfo" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warp") && parameters.length > 0 && parameters[0].equalsIgnoreCase("info")) {
+		} else if (command.equalsIgnoreCase("warp") && parameters.length > 0 && parameters[0].equalsIgnoreCase("info")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.warpinfo") || sender.hasPermission("myultrawarps.warpinfo.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -492,7 +486,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You need to tell me the name of the warp you want info on!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warp info" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warpall")) {
+		} else if (command.equalsIgnoreCase("warpall")) {
 			success = true;
 			if (parameters.length > 0
 					&& (!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
@@ -501,7 +495,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want all the players warped!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warpall" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warp") && parameters.length > 0 && parameters[0].equalsIgnoreCase("all")) {
+		} else if (command.equalsIgnoreCase("warp") && parameters.length > 0 && parameters[0].equalsIgnoreCase("all")) {
 			success = true;
 			if (parameters.length > 1
 					&& (!(sender instanceof Player) || sender.hasPermission("myultrrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
@@ -510,7 +504,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want all the players warped!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warpall" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warp")) {
+		} else if (command.equalsIgnoreCase("warp")) {
 			success = true;
 			if (parameters.length == 0) {
 				if (sender instanceof Player)
@@ -536,7 +530,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				else
 					sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to warp to specific coordinates.");
 			}
-		} else if (command_label.equalsIgnoreCase("warptocoord")) {
+		} else if (command.equalsIgnoreCase("warptocoord")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.warptocoord") || sender.hasPermission("myultrawarps.user") || sender
@@ -548,7 +542,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage("You forgot to tell me where you want to warp to!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to warp to specific coordinates.");
-		} else if (command_label.equalsIgnoreCase("default")
+		} else if (command.equalsIgnoreCase("default")
 				&& parameters.length > 0
 				&& (parameters[0].equalsIgnoreCase("warp") || parameters[0].toLowerCase().startsWith("warp:") || parameters[0].equalsIgnoreCase("nowarp")
 						|| parameters[0].toLowerCase().startsWith("nowarp:") || (parameters.length > 1 && parameters[0].equalsIgnoreCase("no") && (parameters[1]
@@ -574,9 +568,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me the new default message!");
 
-		} else if (command_label.equalsIgnoreCase("changewarp")
-				|| command_label.equalsIgnoreCase("modifywarp")
-				|| ((command_label.equalsIgnoreCase("change") || command_label.equalsIgnoreCase("modify")) && (parameters.length == 0 || !parameters[0]
+		} else if (command.equalsIgnoreCase("changewarp")
+				|| command.equalsIgnoreCase("modifywarp")
+				|| ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && (parameters.length == 0 || !parameters[0]
 						.equalsIgnoreCase("warp")))) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
@@ -588,9 +582,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You didn't tell me what to change!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("change") || command_label.equalsIgnoreCase("modify")) && parameters.length > 0
+		} else if ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && parameters.length > 0
 				&& parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
@@ -602,11 +596,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 2)
 				sender.sendMessage(ChatColor.RED + "You didn't tell me what to change!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " warp" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("deletewarp")
-				|| command_label.equalsIgnoreCase("removewarp")
-				|| ((command_label.equalsIgnoreCase("delete") || command_label.equalsIgnoreCase("remove")) && (parameters.length == 0 || !parameters[0]
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
+						+ ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("deletewarp")
+				|| command.equalsIgnoreCase("removewarp")
+				|| ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && (parameters.length == 0 || !parameters[0]
 						.equalsIgnoreCase("warp")))) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.delete") || sender.hasPermission("myultrawarps.delete.other")
@@ -616,9 +610,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp to delete!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("delete") || command_label.equalsIgnoreCase("remove")) && parameters.length > 0
+		} else if ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && parameters.length > 0
 				&& parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.delete") || sender.hasPermission("myultrawarps.delete.other")
@@ -628,9 +622,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp to delete!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " warp" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("back") || command_label.equalsIgnoreCase("return") || command_label.equalsIgnoreCase("last"))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
+						+ ChatColor.RED + ".");
+		} else if ((command.equalsIgnoreCase("back") || command.equalsIgnoreCase("return") || command.equalsIgnoreCase("last"))) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.back") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -638,9 +632,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.YELLOW + "How exactly can you go back to your last warp if you can't warp in the first place?");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("jump") || command_label.equalsIgnoreCase("j")) {
+		} else if (command.equalsIgnoreCase("jump") || command.equalsIgnoreCase("j")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.jump") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -649,8 +643,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.GREEN + "You jumped! " + ChatColor.YELLOW + "Just kidding. You're a console and you have no body.");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/jump" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("linkwarp")
-				|| (command_label.equalsIgnoreCase("link") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("linkwarp")
+				|| (command.equalsIgnoreCase("link") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other")
@@ -662,9 +656,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.YELLOW + "Point out the switch you want to link \"" + parameters[0]
 						+ "\" to. Oh, wait. You can't. You're a console.");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("link") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
+		} else if (command.equalsIgnoreCase("link") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other")
@@ -677,25 +671,25 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						+ "\" to. Oh, wait. You can't. You're a console.");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/link warp" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("unlinkwarp")
-				|| (command_label.equalsIgnoreCase("unlink") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("unlinkwarp")
+				|| (command.equalsIgnoreCase("unlink") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.unlink") || sender.hasPermission("myultrawarps.unlink.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
 				unlinkWarp(0, sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("unlink") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
+		} else if (command.equalsIgnoreCase("unlink") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.unlink") || sender.hasPermission("myultrawarps.unlink.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
 				unlinkWarp(1, sender);
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/unlink warp" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("movewarp")
-				|| command_label.equalsIgnoreCase("translatewarp")
-				|| (((command_label.equalsIgnoreCase("move") || command_label.equalsIgnoreCase("translate"))) && (parameters.length == 0 || !parameters[0]
+		} else if (command.equalsIgnoreCase("movewarp")
+				|| command.equalsIgnoreCase("translatewarp")
+				|| (((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate"))) && (parameters.length == 0 || !parameters[0]
 						.equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
@@ -707,9 +701,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me which warp to move!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("move") || command_label.equalsIgnoreCase("translate")) && parameters.length > 0
+		} else if ((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate")) && parameters.length > 0
 				&& parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
@@ -721,9 +715,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me which warp to move!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " warp" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("home")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
+						+ ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("home")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.home") || sender.hasPermission("myultrawarps.home.other")
@@ -733,11 +727,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.YELLOW + "You can't have a home! YOU...ARE...A...CONSOLE!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/home" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps"))
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
 				&& (parameters.length == 0 || (parameters.length > 0 && parameters[0].equalsIgnoreCase("help")))) {
 			success = true;
 			displayHelp(sender);
-		} else if ((command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps"))
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("save")
 				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -745,12 +739,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheWarps(sender, true);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps"))
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("save")
 				&& (parameters[1].equalsIgnoreCase("switches") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -758,12 +752,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheSwitches(sender, true);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps"))
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("save")
 				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -771,24 +765,24 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheConfig(sender, true);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps")) && parameters.length == 1
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) && parameters.length == 1
 				&& parameters[0].equalsIgnoreCase("save")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")) {
 				saveTheWarps(sender, true);
 				saveTheSwitches(sender, true);
 				saveTheConfig(sender, true);
-			} else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			} else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("myUltraWarps") || command_label.equalsIgnoreCase("mUW"))
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -796,12 +790,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheWarps(sender);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("myUltraWarps") || command_label.equalsIgnoreCase("mUW"))
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
 				&& parameters.length > 1
 				&& parameters[0].equals("load")
 				&& (parameters[1].equalsIgnoreCase("switches") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -809,12 +803,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheSwitches(sender);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("myUltraWarps") || command_label.equalsIgnoreCase("mUW"))
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
 				&& parameters.length > 1
 				&& parameters[0].equalsIgnoreCase("load")
 				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
@@ -822,32 +816,32 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheConfig(sender);
-			else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command_label.equalsIgnoreCase("myUltraWarps") || command_label.equalsIgnoreCase("mUW")) && parameters.length == 1
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length == 1
 				&& parameters[0].equalsIgnoreCase("load")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")) {
 				loadTheWarps(sender);
 				loadTheSwitches(sender);
 				loadTheConfig(sender);
-			} else if (command_label.equalsIgnoreCase("myUltraWarps"))
+			} else if (command.equalsIgnoreCase("myUltraWarps"))
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
 						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("mUW") || command_label.equalsIgnoreCase("myUltraWarps")) {
+		} else if (command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) {
 			String[] new_parameters = new String[0];
 			if (parameters.length > 0) {
 				new_parameters = new String[parameters.length - 1];
 				for (int i = 1; i < parameters.length; i++)
 					new_parameters[i - 1] = parameters[i];
 			}
-			success = onCommand(sender, command, parameters[0], new_parameters);
-		} else if (command_label.equalsIgnoreCase("top") || command_label.equalsIgnoreCase("t")) {
+			success = onCommand(sender, cmd, parameters[0], new_parameters);
+		} else if (command.equalsIgnoreCase("top") || command.equalsIgnoreCase("t")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.top") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -856,7 +850,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.YELLOW + "You don't have a body! Stop trying to warp!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/top" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("switchinfo")) {
+		} else if (command.equalsIgnoreCase("switchinfo")) {
 			success = true;
 			if (!(sender instanceof Player)
 					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender
@@ -864,7 +858,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				switchInfo(0, sender);
 			} else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/switchinfo" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("switch") && parameters.length > 0 && parameters[0].equalsIgnoreCase("info")) {
+		} else if (command.equalsIgnoreCase("switch") && parameters.length > 0 && parameters[0].equalsIgnoreCase("info")) {
 			success = true;
 			if (!(sender instanceof Player)
 					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender
@@ -872,7 +866,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				switchInfo(1, sender);
 			} else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/switch info" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("to") || command_label.equalsIgnoreCase("find")) {
+		} else if (command.equalsIgnoreCase("to") || command.equalsIgnoreCase("find")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.to") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
@@ -883,10 +877,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who I should teleport you to!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("from") || command_label.equalsIgnoreCase("pull") || command_label.equalsIgnoreCase("yank")
-				|| command_label.equalsIgnoreCase("bring") || command_label.equalsIgnoreCase("get")) {
+		} else if (command.equalsIgnoreCase("from") || command.equalsIgnoreCase("pull") || command.equalsIgnoreCase("yank")
+				|| command.equalsIgnoreCase("bring") || command.equalsIgnoreCase("get")) {
 			success = true;
 			if (sender instanceof Player && (sender.hasPermission("myultrawarps.from") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 0)
 				from(sender);
@@ -895,9 +889,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who I should teleport to you!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("send")) {
+		} else if (command.equalsIgnoreCase("send")) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.send") || sender.hasPermission("myultrawarps.admin"))
 					&& parameters.length >= 2)
@@ -908,47 +902,46 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where to send " + parameters[0] + "!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/send" + ChatColor.RED + ".");
-		} else if (command_label.equalsIgnoreCase("warps") && parameters.length > 0
+		} else if (command.equalsIgnoreCase("warps") && parameters.length > 0
 				&& (parameters[0].equalsIgnoreCase("around") || parameters[0].equalsIgnoreCase("near"))) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpsaround") || sender.hasPermission("myultrawarps.user") || sender
 					.hasPermission("myultrawarps.admin")) && parameters.length > 1)
-				warpsAround(1, sender, command_label);
+				warpsAround(1, sender, command);
 			else if (parameters.length > 1)
 				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/warps " + parameters[0].toLowerCase()
 						+ ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want the search to be centered!");
-		} else if (command_label.equalsIgnoreCase("warpsaround") || command_label.equalsIgnoreCase("warpsnear")) {
+		} else if (command.equalsIgnoreCase("warpsaround") || command.equalsIgnoreCase("warpsnear")) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpsaround") || sender.hasPermission("myultrawarps.user") || sender
 					.hasPermission("myultrawarps.admin")) && parameters.length > 0)
-				warpsAround(0, sender, command_label);
+				warpsAround(0, sender, command);
 			else if (parameters.length > 0)
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED
+						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want the search to be centered!");
-		} else if (command_label.equalsIgnoreCase("maxwarps") || command_label.equalsIgnoreCase("maximumwarps")) {
+		} else if (command.equalsIgnoreCase("maxwarps") || command.equalsIgnoreCase("maximumwarps")) {
 			success = true;
 			if (parameters.length > 0 && (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")))
 				changeMaxWarps(0, sender);
 			else if (sender instanceof Player && !sender.hasPermission("myultrawarps.admin"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want me to change the max warps to!");
-		} else if ((command_label.equalsIgnoreCase("max") || command_label.equalsIgnoreCase("maximum")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("warps")) {
+		} else if ((command.equalsIgnoreCase("max") || command.equalsIgnoreCase("maximum")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("warps")) {
 			success = true;
 			if (parameters.length > 1 && (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")))
 				changeMaxWarps(1, sender);
 			else if (sender instanceof Player && !sender.hasPermission("myultrawarps.admin"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
-						+ " warps" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warps"
+						+ ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want me to change the max warps to!");
-		} else if (command_label.equalsIgnoreCase("forward") || command_label.equalsIgnoreCase("fwd")) {
+		} else if (command.equalsIgnoreCase("forward") || command.equalsIgnoreCase("fwd")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.admin") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.forward")))
@@ -957,7 +950,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED
 						+ "You're a console!! How can I warp you somewhere you've already warped if you can't warp at all in the first place?!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command_label.toLowerCase()
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
 						+ ChatColor.RED + ".");
 		}
 		return success;
@@ -1507,6 +1500,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							delete_index = j;
 						}
 					}
+					// rename warps named "info", "all", or "list"
 					if (!first_warp.getName().equalsIgnoreCase("info") && !first_warp.getName().equalsIgnoreCase("all")
 							&& !first_warp.getName().equalsIgnoreCase("list"))
 						warps.add(first_warp);
@@ -1913,44 +1907,46 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 		if (url != null) {
 			String new_version_name = null, new_version_link = null;
-			// Obtain the results of the project's file feed
 			try {
 				// Set header values intial to the empty string
-				String temp_title = "";
-				String temp_link = "";
+				String title = "";
+				String link = "";
+				// First create a new XMLInputFactory
+				XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 				// Setup a new eventReader
 				InputStream in = null;
 				try {
 					in = url.openStream();
-				} catch (IOException exception) {
-					sender.sendMessage(ChatColor.DARK_RED + "Gah! IOException in the Updater!");
-					exception.printStackTrace();
+				} catch (IOException e) {
+					console.sendMessage(ChatColor.RED + "I'm scared! IOException in the updater! Help me!");
 				}
-				XMLEventReader eventReader = XMLInputFactory.newInstance().createXMLEventReader(in);
+				XMLEventReader eventReader = inputFactory.createXMLEventReader(in);
 				// Read the XML document
 				while (eventReader.hasNext()) {
 					XMLEvent event = eventReader.nextEvent();
 					if (event.isStartElement()) {
 						if (event.asStartElement().getName().getLocalPart().equals("title")) {
 							event = eventReader.nextEvent();
-							temp_title = event.asCharacters().getData();
+							title = event.asCharacters().getData();
 							continue;
 						}
 						if (event.asStartElement().getName().getLocalPart().equals("link")) {
 							event = eventReader.nextEvent();
-							temp_link = event.asCharacters().getData();
+							link = event.asCharacters().getData();
 							continue;
 						}
 					} else if (event.isEndElement()) {
 						if (event.asEndElement().getName().getLocalPart().equals("item")) {
-							new_version_name = temp_title;
-							new_version_link = temp_link;
+							new_version_name = title;
+							new_version_link = link;
+							// All done, we don't need to know about older
+							// files.
 							break;
 						}
 					}
 				}
-			} catch (XMLStreamException e) {
-				sender.sendMessage(ChatColor.DARK_RED + "Oh, nos! There was an error in the myUltraWarps updater!");
+			} catch (XMLStreamException exception) {
+				console.sendMessage(ChatColor.DARK_RED + "Gah! XMLStreamExceptionThing! Come quick! Tell REALDrummer!");
 			}
 			boolean new_version_is_out = false;
 			String version = getDescription().getVersion(), newest_online_version = "";
