@@ -1,6 +1,6 @@
 name: myUltraWarps
 main: REALDrummer.myUltraWarps
-version: 6.1
+version: 7
 softdepend: [Vault]
 description: >
              This super simple plugin has so many features your head may just implode.
