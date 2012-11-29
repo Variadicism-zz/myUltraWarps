@@ -1,6 +1,7 @@
 package REALDrummer;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.World;
 
 public class UltraWarp {
@@ -8,14 +9,12 @@ public class UltraWarp {
 	private String owner, name, warp_message, no_warp_message, save_line;
 	private String[] listed_users;
 	private boolean listed, restricted;
-	private double x, y, z, pitch, yaw;
+	private double x, y, z;
+	private float pitch, yaw;
 	private World world;
 
-	public UltraWarp(String my_owner, String my_name, boolean my_listed,
-			boolean my_restricted, String my_warp_message,
-			String my_no_warp_message, String[] my_listed_users, double my_x,
-			double my_y, double my_z, double my_pitch, double my_yaw,
-			World my_world) {
+	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message,
+			String[] my_listed_users, double my_x, double my_y, double my_z, float my_pitch, float my_yaw, World my_world) {
 		owner = my_owner;
 		name = my_name;
 		listed = my_listed;
@@ -37,26 +36,76 @@ public class UltraWarp {
 		else
 			listed_string = "an unlisted";
 		if (restricted) {
-			save_line = new String(owner + "'s warp \"" + name + "\" is "
-					+ listed_string + ", restricted warp at (" + x + ", " + y
-					+ ", " + z + ") in \"" + world.getWorldFolder().getName()
-					+ "\" aiming at (" + pitch + ", " + yaw
-					+ "). Prohibited users see \"" + no_warp_message
-					+ "\" while ");
+			save_line =
+					new String(owner + "'s warp \"" + name + "\" is " + listed_string + ", restricted warp at (" + x + ", " + y + ", " + z + ") in \""
+							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Prohibited users see \"" + no_warp_message
+							+ "\" while ");
 		} else {
-			save_line = new String(owner + "'s warp \"" + name + "\" is "
-					+ listed_string + ", unrestricted warp at (" + x + ", " + y
-					+ ", " + z + ") in \"" + world.getWorldFolder().getName()
-					+ "\" aiming at (" + pitch + ", " + yaw
-					+ "). Permitted users see \"" + warp_message + "\" while ");
+			save_line =
+					new String(owner + "'s warp \"" + name + "\" is " + listed_string + ", unrestricted warp at (" + x + ", " + y + ", " + z + ") in \""
+							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Permitted users see \"" + warp_message
+							+ "\" while ");
 		}
 		if (listed_users.length == 0)
 			save_line = save_line + "other users may see \"";
 		else if (listed_users.length == 1) {
 			save_line = save_line + listed_users[0] + " sees \"";
 		} else if (listed_users.length == 2) {
-			save_line = save_line + listed_users[0] + " and " + listed_users[1]
-					+ " both see \"";
+			save_line = save_line + listed_users[0] + " and " + listed_users[1] + " both see \"";
+		} else
+			for (int i = 0; i < listed_users.length; i++) {
+				if (listed_users.length - 2 > i)
+					save_line = save_line + listed_users[i] + ", ";
+				else if (listed_users.length - 1 == i)
+					save_line = save_line + listed_users[i] + " all see \"";
+				else
+					save_line = save_line + listed_users[i] + ", and ";
+			}
+		if (restricted)
+			save_line = save_line + warp_message + "\".";
+		else
+			save_line = save_line + no_warp_message + "\".";
+	}
+
+	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message,
+			String[] my_listed_users, Location location) {
+		owner = my_owner;
+		name = my_name;
+		listed = my_listed;
+		restricted = my_restricted;
+		warp_message = my_warp_message;
+		no_warp_message = my_no_warp_message;
+		listed_users = my_listed_users;
+		x = location.getX();
+		y = location.getY();
+		z = location.getZ();
+		pitch = location.getPitch();
+		yaw = location.getYaw();
+		world = location.getWorld();
+		if (listed_users == null)
+			listed_users = new String[0];
+		String listed_string;
+		if (listed)
+			listed_string = "a listed";
+		else
+			listed_string = "an unlisted";
+		if (restricted) {
+			save_line =
+					new String(owner + "'s warp \"" + name + "\" is " + listed_string + ", restricted warp at (" + x + ", " + y + ", " + z + ") in \""
+							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Prohibited users see \"" + no_warp_message
+							+ "\" while ");
+		} else {
+			save_line =
+					new String(owner + "'s warp \"" + name + "\" is " + listed_string + ", unrestricted warp at (" + x + ", " + y + ", " + z + ") in \""
+							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Permitted users see \"" + warp_message
+							+ "\" while ");
+		}
+		if (listed_users.length == 0)
+			save_line = save_line + "other users may see \"";
+		else if (listed_users.length == 1) {
+			save_line = save_line + listed_users[0] + " sees \"";
+		} else if (listed_users.length == 2) {
+			save_line = save_line + listed_users[0] + " and " + listed_users[1] + " both see \"";
 		} else
 			for (int i = 0; i < listed_users.length; i++) {
 				if (listed_users.length - 2 > i)
@@ -162,7 +211,7 @@ public class UltraWarp {
 		// figure out the pitch
 		for (int i = temp_progress; i < temp_progress + 50; i++) {
 			if (save_line.substring(i, i + 1).equals(",")) {
-				pitch = Double.parseDouble(save_line.substring(progress, i));
+				pitch = Float.parseFloat(save_line.substring(progress, i));
 				int temp_i = i;
 				i = progress + 51;
 				progress = temp_i + 2;
@@ -172,7 +221,7 @@ public class UltraWarp {
 		// figure out the yaw
 		for (int i = temp_progress; i < temp_progress + 50; i++) {
 			if (save_line.substring(i, i + 1).equals(")")) {
-				yaw = Double.parseDouble(save_line.substring(progress, i));
+				yaw = Float.parseFloat(save_line.substring(progress, i));
 				int temp_i = i;
 				i = progress + 51;
 				if (restricted)
@@ -196,8 +245,7 @@ public class UltraWarp {
 		}
 		// figure out the listed users
 		temp_progress = progress;
-		if (save_line.substring(temp_progress, temp_progress + 6).equals(
-				"other ")) {
+		if (save_line.substring(temp_progress, temp_progress + 6).equals("other ")) {
 			listed_users = new String[0];
 			progress = temp_progress + 21;
 		} else {
@@ -218,18 +266,13 @@ public class UltraWarp {
 				for (int j = 0; j < listed_users.length; j++) {
 					for (int i = progress; i < save_line.length(); i++) {
 						if (i + 5 < save_line.length())
-							if (save_line.substring(i, i + 2).equals(", ")
-									|| save_line.substring(i, i + 5).equals(
-											" all ")) {
-								listed_users[j] = save_line.substring(progress,
-										i);
+							if (save_line.substring(i, i + 2).equals(", ") || save_line.substring(i, i + 5).equals(" all ")) {
+								listed_users[j] = save_line.substring(progress, i);
 								progress = i + 2;
 								if (i + 6 < save_line.length())
-									if (save_line.substring(i, i + 6).equals(
-											", and "))
+									if (save_line.substring(i, i + 6).equals(", and "))
 										progress = progress + 4;
-									else if (save_line.substring(i, i + 5)
-											.equals(" all "))
+									else if (save_line.substring(i, i + 5).equals(" all "))
 										progress = progress + 8;
 								i = save_line.length();
 							}
@@ -243,14 +286,12 @@ public class UltraWarp {
 							listed_users[0] = save_line.substring(progress, i);
 							progress = i + 7;
 							i = save_line.length();
-						} else if (save_line.substring(i, i + 5)
-								.equals(" and ")) {
+						} else if (save_line.substring(i, i + 5).equals(" and ")) {
 							listed_users = new String[2];
 							listed_users[0] = save_line.substring(progress, i);
 							progress = i + 5;
 							i = progress;
-						} else if (save_line.substring(i, i + 6).equals(
-								" both ")) {
+						} else if (save_line.substring(i, i + 6).equals(" both ")) {
 							listed_users[1] = save_line.substring(progress, i);
 							int temp_i = i;
 							progress = temp_i + 11;
@@ -261,11 +302,9 @@ public class UltraWarp {
 		}
 		// figure out the last message
 		if (restricted)
-			warp_message = save_line
-					.substring(progress, save_line.length() - 2);
+			warp_message = save_line.substring(progress, save_line.length() - 2);
 		else
-			no_warp_message = save_line.substring(progress,
-					save_line.length() - 2);
+			no_warp_message = save_line.substring(progress, save_line.length() - 2);
 	}
 
 	public String getSaveLine() {
@@ -344,5 +383,9 @@ public class UltraWarp {
 
 	public World getWorld() {
 		return world;
+	}
+
+	public Location getLocation() {
+		return new Location(world, x, y, z, (float) yaw, (float) pitch);
 	}
 }

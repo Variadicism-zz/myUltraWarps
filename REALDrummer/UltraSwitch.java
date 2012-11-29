@@ -11,11 +11,8 @@ public class UltraSwitch {
 	private World world;
 	private String[] exempted_players;
 
-	public UltraSwitch(String my_warp_name, String my_warp_owner,
-			String my_switch_type, int my_cooldown_time, int my_max_uses,
-			boolean my_global_cooldown, double my_cost,
-			String[] my_exempted_players, double my_x, double my_y,
-			double my_z, World my_world) {
+	public UltraSwitch(String my_warp_name, String my_warp_owner, String my_switch_type, int my_cooldown_time, int my_max_uses, boolean my_global_cooldown,
+			double my_cost, String[] my_exempted_players, double my_x, double my_y, double my_z, World my_world) {
 		warp_name = my_warp_name;
 		warp_owner = my_warp_owner;
 		switch_type = my_switch_type;
@@ -28,65 +25,26 @@ public class UltraSwitch {
 		y = my_y;
 		z = my_z;
 		world = my_world;
-		save_line = "The " + switch_type + " at (" + x + ", " + y + ", " + z
-				+ ") in \"" + world.getWorldFolder().getName()
-				+ "\" is linked to " + warp_owner + "'s warp \"" + warp_name
-				+ "\".";
+		save_line =
+				"The " + switch_type + " at (" + x + ", " + y + ", " + z + ") in \"" + world.getWorldFolder().getName() + "\" is linked to " + warp_owner
+						+ "'s warp \"" + warp_name + "\".";
 		if (cooldown_time > 0) {
 			if (max_uses != 1)
-				save_line = save_line + " It can be used " + max_uses
-						+ " times before ";
+				save_line = save_line + " It can be used " + max_uses + " times before ";
 			else
 				save_line = save_line + " It can be used once before ";
 			if (global_cooldown)
 				save_line = save_line + "everyone has to wait ";
 			else
 				save_line = save_line + "that player has to wait ";
-			int days = 0, remainder, hours = 0, minutes = 0;
-			double seconds = 0;
-			days = (int) (cooldown_time / 86400000);
-			remainder = cooldown_time % 86400000;
-			if (remainder != 0) {
-				hours = (int) (remainder / 3600000);
-				remainder = remainder % 3600000;
-				if (remainder != 0) {
-					minutes = (int) (remainder / 60000);
-					remainder = remainder % 60000;
-					seconds = remainder / 1000.0;
-				}
-			}
-			if (days > 0) {
-				save_line = save_line + days + " days ";
-				if ((hours > 0 && minutes == 0 && seconds == 0)
-						|| (hours == 0 && minutes > 0 && seconds == 0)
-						|| (hours == 0 && minutes == 0 && seconds > 0))
-					save_line = save_line + "and ";
-			}
-			if (hours > 0) {
-				save_line = save_line + hours + " hours ";
-				if ((minutes > 0 && seconds == 0)
-						|| (minutes == 0 && seconds > 0))
-					save_line = save_line + "and ";
-			}
-			if (minutes > 0) {
-				save_line = save_line + minutes + " minutes ";
-				if (seconds > 0)
-					save_line = save_line + "and ";
-			}
-			if (seconds > 0)
-				save_line = save_line + seconds + " seconds ";
-			save_line = save_line + "before using it again.";
+			save_line = save_line + myUltraWarps.translateTimeInmsToString(cooldown_time) + " before using it again.";
 		}
 	}
 
 	public UltraSwitch(String my_save_line) {
-		// The [switch type] at ([x], [y], [z]) in "[world]" is linked to
-		// [owner]'s warp "[warp name]". [player1, player2, and
-		// player3] are exempted from all charges and restrictions. (It can be
-		// used [max uses] times before
-		// [that player/everyone] has to wait [cooldown time] before using it
-		// again.) (It [costs/gives players] [money] [economy currency] (and
-		// [minor] [economy minor currency]) to use it.)
+		// The [switch type] at ([x], [y], [z]) in "[world]" is linked to [owner]'s warp "[warp name]". [player1, player2, and player3] are exempted from all
+		// charges and restrictions. (It can be used [max uses] times before [that player/everyone] has to wait [cooldown time] before using it again.) (It
+		// [costs/gives players] [money] [economy currency] (and [minor] [economy minor currency]) to use it.)
 		save_line = my_save_line;
 		// figure out the switch type
 		if (save_line.substring(4, 5).equals("b"))
@@ -168,8 +126,7 @@ public class UltraSwitch {
 			for (int i = temp_progress; i < temp_progress + 6; i++) {
 				if (save_line.substring(i, i + 1).equals(" ")) {
 					try {
-						max_uses = Integer.parseInt(save_line.substring(
-								progress, i));
+						max_uses = Integer.parseInt(save_line.substring(progress, i));
 						int temp_i = i;
 						i = temp_progress + 7;
 						progress = temp_i + 14;
@@ -189,163 +146,7 @@ public class UltraSwitch {
 				progress = progress + 25;
 			}
 			temp_progress = progress;
-			// figure out the cooldown time
-			double some_value = 0;
-			for (int i = temp_progress; i < temp_progress + 6; i++) {
-				if (save_line.substring(i, i + 1).equals(" ")) {
-					some_value = Double.parseDouble(save_line.substring(
-							progress, i));
-					int temp_i = i;
-					i = temp_progress + 7;
-					progress = temp_i + 1;
-				}
-			}
-			if (save_line.substring(progress, progress + 4).equals("days")) {
-				cooldown_time = (int) (cooldown_time + some_value * 86400000);
-				progress = progress + 5;
-			} else if (save_line.substring(progress, progress + 5).equals(
-					"hours")) {
-				cooldown_time = (int) (cooldown_time + some_value * 3600000);
-				progress = progress + 6;
-			} else if (save_line.substring(progress, progress + 7).equals(
-					"minutes")) {
-				cooldown_time = (int) (cooldown_time + some_value * 60000);
-				progress = progress + 8;
-			} else if (save_line.substring(progress, progress + 7).equals(
-					"seconds"))
-				cooldown_time = (int) (cooldown_time + some_value * 1000);
-			if (cooldown_time >= 60000) {
-				temp_progress = progress;
-				try {
-					for (int i = temp_progress; i < temp_progress + 6; i++) {
-						if (save_line.substring(i, i + 1).equals(" ")) {
-							some_value = Double.parseDouble(save_line
-									.substring(progress, i));
-							int temp_i = i;
-							i = temp_progress + 7;
-							progress = temp_i + 1;
-						}
-					}
-					if (save_line.substring(progress, progress + 5).equals(
-							"hours")) {
-						cooldown_time = (int) (cooldown_time + some_value * 3600000);
-						progress = progress + 6;
-					} else if (save_line.substring(progress, progress + 7)
-							.equals("minutes")) {
-						cooldown_time = (int) (cooldown_time + some_value * 60000);
-						progress = progress + 8;
-					} else if (save_line.substring(progress, progress + 7)
-							.equals("seconds"))
-						cooldown_time = (int) (cooldown_time + some_value * 1000);
-				} catch (NumberFormatException exception) {
-					if (save_line.substring(progress, progress + 4).equals(
-							"and ")) {
-						progress = progress + 4;
-						temp_progress = progress;
-						for (int i = temp_progress; i < temp_progress + 6; i++) {
-							if (save_line.substring(i, i + 1).equals(" ")) {
-								some_value = Double.parseDouble(save_line
-										.substring(progress, i));
-								int temp_i = i;
-								i = temp_progress + 7;
-								progress = temp_i + 1;
-							}
-						}
-						if (save_line.substring(progress, progress + 5).equals(
-								"hours")) {
-							cooldown_time = (int) (cooldown_time + some_value * 3600000);
-							progress = progress + 6;
-						} else if (save_line.substring(progress, progress + 7)
-								.equals("minutes")) {
-							cooldown_time = (int) (cooldown_time + some_value * 60000);
-							progress = progress + 8;
-						} else if (save_line.substring(progress, progress + 7)
-								.equals("seconds"))
-							cooldown_time = (int) (cooldown_time + some_value * 1000);
-						done = true;
-					}
-				}
-				if (cooldown_time >= 3600000 && !done) {
-					temp_progress = progress;
-					try {
-						for (int i = temp_progress; i < temp_progress + 6; i++) {
-							if (save_line.substring(i, i + 1).equals(" ")) {
-								some_value = Double.parseDouble(save_line
-										.substring(progress, i));
-								int temp_i = i;
-								i = temp_progress + 7;
-								progress = temp_i + 1;
-							}
-						}
-						if (save_line.substring(progress, progress + 7).equals(
-								"minutes")) {
-							cooldown_time = (int) (cooldown_time + some_value * 60000);
-							progress = progress + 8;
-						} else if (save_line.substring(progress, progress + 7)
-								.equals("seconds"))
-							cooldown_time = (int) (cooldown_time + some_value * 1000);
-					} catch (NumberFormatException exception) {
-						if (save_line.substring(progress, progress + 4).equals(
-								"and ")) {
-							progress = progress + 4;
-							temp_progress = progress;
-							for (int i = temp_progress; i < temp_progress + 6; i++) {
-								if (save_line.substring(i, i + 1).equals(" ")) {
-									some_value = Double.parseDouble(save_line
-											.substring(progress, i));
-									int temp_i = i;
-									i = temp_progress + 7;
-									progress = temp_i + 1;
-								}
-							}
-							if (save_line.substring(progress, progress + 7)
-									.equals("minutes")) {
-								cooldown_time = (int) (cooldown_time + some_value * 60000);
-								progress = progress + 8;
-							} else if (save_line.substring(progress,
-									progress + 7).equals("seconds"))
-								cooldown_time = (int) (cooldown_time + some_value * 1000);
-							done = true;
-						}
-					}
-				}
-				if (cooldown_time >= 86400000 && !done) {
-					temp_progress = progress;
-					try {
-						for (int i = temp_progress; i < temp_progress + 6; i++) {
-							if (save_line.substring(i, i + 1).equals(" ")) {
-								some_value = Double.parseDouble(save_line
-										.substring(progress, i));
-								int temp_i = i;
-								i = temp_progress + 7;
-								progress = temp_i + 1;
-							}
-						}
-						if (save_line.substring(progress, progress + 7).equals(
-								"seconds"))
-							cooldown_time = (int) (cooldown_time + some_value * 1000);
-					} catch (NumberFormatException exception) {
-						if (save_line.substring(progress, progress + 4).equals(
-								"and ")) {
-							progress = progress + 4;
-							temp_progress = progress;
-							for (int i = temp_progress; i < temp_progress + 6; i++) {
-								if (save_line.substring(i, i + 1).equals(" ")) {
-									some_value = Double.parseDouble(save_line
-											.substring(progress, i));
-									int temp_i = i;
-									i = temp_progress + 7;
-									progress = temp_i + 1;
-								}
-							}
-							if (save_line.substring(progress, progress + 7)
-									.equals("seconds"))
-								cooldown_time = (int) (cooldown_time + some_value * 1000);
-							done = true;
-						}
-					}
-				}
-			}
+			cooldown_time = myUltraWarps.translateStringtoTimeInms(save_line.split("has to wait")[1].split("before using it")[0]);
 		} else {
 			max_uses = 0;
 			cooldown_time = 0;

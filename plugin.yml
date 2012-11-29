@@ -30,6 +30,16 @@ commands:
       description: This command creates a named warp at your current location.
       usage: |
            /<command> [warp] (type:[open/secret/advertised/private]) (warp:[message]) (nowarp:[message]) (giveto:[player])
+   death:
+      aliases: []
+      description: This command teleports you back through your death history.
+      usage: |
+           /<command> (amount)
+   deathfwd:
+      aliases: [dfwd, fwdd, fwddeath]
+      description: This command teleports you forward through your death history.
+      usage: |
+           /<command> (amount)
    default:
       aliases: []
       description: The command change the default warp or no warp message for a player, group, or the entire server.
@@ -71,7 +81,7 @@ commands:
       usage: |
            /<command>
    home:
-      aliases: []
+      aliases: [h]
       description: This command warps you to a warp called "home".
       usage: |
            /<command> (owner's)
