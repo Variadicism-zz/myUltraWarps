@@ -37,7 +37,7 @@ public class UltraSwitch {
 				save_line = save_line + "everyone has to wait ";
 			else
 				save_line = save_line + "that player has to wait ";
-			save_line = save_line + myUltraWarps.translateTimeInmsToString(cooldown_time) + " before using it again.";
+			save_line = save_line + myUltraWarps.translateTimeInmsToString(cooldown_time, false) + " before using it again.";
 		}
 	}
 

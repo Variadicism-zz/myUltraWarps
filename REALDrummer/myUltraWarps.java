@@ -92,6 +92,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
+	// TODO: make cool down times and
 	// TODO: make /trust
 	// TODO: make anti-spam filters for /to and /from
 	// TODO: make teleportation requests (to and from) rollover
@@ -1497,7 +1498,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	// listeners
 	@EventHandler
-	public void informPlayersOfStuff(PlayerJoinEvent event) {
+	public void informPlayersOfStuffAndRemoveTheirCoolingDownStatusIfNecessary(PlayerJoinEvent event) {
 		if (!event.getPlayer().hasPlayedBefore())
 			event.getPlayer().sendMessage(
 					colorCode(replaceAll(spawn_messages_by_world.get(event.getPlayer().getWorld()), "[player]", event.getPlayer().getName())));
@@ -1513,6 +1514,20 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (info_messages_for_players.get(event.getPlayer().getName()) != null)
 				for (String message : info_messages_for_players.get(event.getPlayer().getName()))
 					event.getPlayer().sendMessage(message);
+			// remove a player's cooling down status if necessary
+			// I would have it check when it's loading the temporary data concerning cooling down players, but the player needs to be online for me to check all
+			// their permissions, so I have to check it when the y log on instead
+			if (cooling_down_players.containsKey(event.getPlayer().getName())) {
+				// get the player's cooldown time
+				int cooldown_time = (Integer) default_settings[5];
+				if (use_group_settings && permissions != null && permissions.getPrimaryGroup(event.getPlayer()) != null
+						&& group_settings.get(permissions.getPrimaryGroup(event.getPlayer())) != null)
+					cooldown_time = (Integer) group_settings.get(permissions.getPrimaryGroup(event.getPlayer()))[5];
+				if (per_player_settings.get(event.getPlayer().getName()) != null)
+					cooldown_time = (Integer) per_player_settings.get(event.getPlayer().getName())[5];
+				if (cooling_down_players.get(event.getPlayer().getName()) + cooldown_time < Calendar.getInstance().getTimeInMillis())
+					cooling_down_players.remove(event.getPlayer().getName());
+			}
 		}
 	}
 
@@ -1570,8 +1585,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									warp_target, true, null);
 						} else
 							event.getPlayer().sendMessage(colorCode(replaceAll(warp_target.getNoWarpMessage(), "[player]", event.getPlayer().getName())));
-					} else if (cooling_down_players.containsKey(event.getPlayer().getName())) {
-						// TODO tell players the timer isn't up
 					}
 				}
 			}
@@ -2394,10 +2407,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				String save_line = in.readLine(), data_type = "", player = "";
 				while (save_line != null) {
 					if (save_line.startsWith("==== "))
-						if (save_line.substring(5).startsWith("warp"))
-							data_type = "warp histories";
-						else
-							data_type = "death histories";
+						data_type = save_line.substring(5, save_line.length() - 5);
 					else if (save_line.startsWith("== "))
 						player = save_line.split(" ")[1];
 					else if (data_type.equals("warp histories")) {
@@ -2435,6 +2445,19 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							} catch (NumberFormatException exception2) {
 								console.sendMessage(ChatColor.DARK_RED + "There was a problem reading the death history from the temporary data file!");
 							}
+						}
+					} else if (data_type.equals("blocked players")) {
+						ArrayList<String> replacement = blocked_players.get(player);
+						if (replacement == null)
+							replacement = new ArrayList<String>();
+						replacement.add(save_line);
+						blocked_players.put(player, replacement);
+					} else if (data_type.equals("cool down times")) {
+						try {
+							cooling_down_players.put(player, Long.parseLong(save_line));
+						} catch (NumberFormatException exception) {
+							console.sendMessage(ChatColor.DARK_RED + "There was an error in loading the cool down time data for " + player
+									+ " from the temporary file!");
 						}
 					}
 					save_line = in.readLine();
@@ -2833,6 +2856,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						out.newLine();
 					}
 				}
+				out.write("==== blocked players ====");
+				out.newLine();
+				for (String key : blocked_players.keySet())
+					if (blocked_players.get(key) != null && blocked_players.get(key).size() > 0) {
+						out.write("== " + key + " ==");
+						out.newLine();
+						for (String blocked_player : blocked_players.get(key)) {
+							out.write(blocked_player);
+							out.newLine();
+						}
+					}
+				out.write("==== cool down times ====");
+				out.newLine();
+				for (String key : cooling_down_players.keySet())
+					if (cooling_down_players.get(key) != null) {
+						out.write("== " + key + " ==");
+						out.newLine();
+						out.write("" + cooling_down_players.get(key));
+						out.newLine();
+					}
 				out.flush();
 				out.close();
 			} catch (IOException exception) {

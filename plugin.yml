@@ -10,6 +10,16 @@ commands:
       description: This command warps you to the last location you warped.
       usage: |
            /<command> (amount)
+   block:
+      aliases: []
+      description: This command blocks all teleportation requests from the player specified.
+      usage: |
+           /<command> [player]
+   blocklist:
+      aliases: []
+      description: This command lists all the people you have blocked.
+      usage: |
+           /<command>
    change:
       aliases: [modify]
       description: This command modifies properties of an existing warp.
@@ -180,6 +190,11 @@ commands:
       description: This command teleports you to the highest solid block directly above you.
       usage: |
            /<command>
+   unblock:
+      aliases: []
+      description: This command unblocks the specified player.
+      usage: |
+           /<command> [player]
    unlink:
       aliases: []
       description: This command unlinks the warp from a switch or unlinks all switches from a warp.
