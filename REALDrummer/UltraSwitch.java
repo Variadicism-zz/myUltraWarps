@@ -1,5 +1,6 @@
 package REALDrummer;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 
 public class UltraSwitch {
@@ -204,5 +205,9 @@ public class UltraSwitch {
 
 	public World getWorld() {
 		return world;
+	}
+
+	public Location getLocation() {
+		return new Location(world, x, y, z);
 	}
 }

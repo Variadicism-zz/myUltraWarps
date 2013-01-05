@@ -92,12 +92,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
-	// TODO: make cool down times and
+	// TODO: redo loadTheConfig()
+	// TODO: make /warps near me comapre the number of blocks it would have to compare with the number of warps and determine which way to search would be
+	// easier. Then, either search by each block in the radius or just search through the warps list
 	// TODO: make /trust
 	// TODO: make anti-spam filters for /to and /from
 	// TODO: make teleportation requests (to and from) rollover
 	// TODO: make on-login info messages rollover
-	// TODO: make player blocking rollover
 	// TODO: make /back and /fwd display "(warp [index]/[warp_history.size()])"
 	// TODO: if a player blocks a myUltraWarps admin while he's offline, unblock the admin when he logs on and inform the blocker
 	// TODO: make teleportation to your home on death configurable
@@ -384,6 +385,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		// done disabling
 		String disable_message = disable_messages[(int) (Math.random() * disable_messages.length)];
 		console.sendMessage(ChatColor.GREEN + disable_message);
+		for (Player player : server.getOnlinePlayers())
+			if (player.hasPermission("myultrawarps.admin"))
+				player.sendMessage(ChatColor.GREEN + disable_message);
 		// forcibly disable the permissions plugin
 		if (permissions != null) {
 			Plugin permissions_plugin = server.getPluginManager().getPlugin(permissions.getName());
@@ -1555,21 +1559,21 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (target_block != null
 					&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
 							|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
-				for (UltraSwitch my_switch : switches) {
-					Location switch_location = new Location(my_switch.getWorld(), my_switch.getX(), my_switch.getY(), my_switch.getZ());
-					if (target_block != null
-							&& target_block.getLocation().equals(switch_location)
+				for (UltraSwitch my_switch : switches)
+					if (target_block.getLocation().equals(my_switch.getLocation())
 							&& ((my_switch.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.PHYSICAL)) || (!my_switch
-									.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK))))
+									.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))) {
 						target = my_switch;
-				}
+						break;
+					}
 				if (target != null) {
+					// cancel the interaction event if you right-clicked a sign to make sure it doesn't make you place the block in your hand
 					if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
 						event.setCancelled(true);
 					for (UltraWarp warp : warps)
 						if (warp.getOwner().equals(target.getWarpOwner()) && warp.getName().equals(target.getWarpName()))
 							warp_target = warp;
-					if (warp_target != null && cooling_down_players.containsKey(event.getPlayer().getName())) {
+					if (warp_target != null) {
 						boolean listed = false;
 						for (String listed_user : warp_target.getListedUsers())
 							if (listed_user.equals(event.getPlayer().getName()))
@@ -2020,7 +2024,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private void loadTheConfig(CommandSender sender) {
-		boolean failed = false;
 		// link up with Vault
 		Vault = server.getPluginManager().getPlugin("Vault");
 		if (Vault != null) {
@@ -2100,7 +2103,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					autosave_switches = getResponse(sender, save_line.substring(93), in.readLine(), "Right now, autosave is on for switches.");
 				else if (save_line.startsWith("Do you want myUltraWarps to automatically save the config file every time a change is made?"))
 					autosave_config = getResponse(sender, save_line.substring(91), in.readLine(), "Right now, autosave is on for the config.");
-				else if (save_line.equals("You can set the messages that appear when someone teleports to the spawn point for each world.")) {
+				else if (save_line.startsWith("You can set the messages that appear when someone teleports to the spawn point for each world.")) {
 					parsing = "spawn messages";
 					save_line = in.readLine();
 					while (save_line.startsWith(" "))
@@ -2108,31 +2111,36 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				} else if (save_line.startsWith("global settings:")) {
 					parsing = "global";
 					save_line = save_line.substring(16);
+					while (save_line.startsWith(" "))
+						save_line = save_line.substring(1);
 				} else if (save_line.startsWith("group settings:")) {
 					parsing = "group";
 					save_line = save_line.substring(15);
+					while (save_line.startsWith(" "))
+						save_line = save_line.substring(1);
 				} else if (save_line.startsWith("individual settings:")) {
 					parsing = "individual";
 					save_line = save_line.substring(20);
+					while (save_line.startsWith(" "))
+						save_line = save_line.substring(1);
 				}
 				if (parsing.equals("spawn messages")) {
-					String world_name = "", spawn_message = "";
-					for (int i = 0; i < save_line.length() - 1; i++)
-						if (save_line.substring(i, i + 2).equals(": ")) {
-							world_name = save_line.substring(0, i);
-							spawn_message = save_line.substring(i + 2);
-						}
+					String[] temp = save_line.split(":");
+					String world_name = temp[0], spawn_message = temp[1];
+					// eliminate preceding spaces in the spawn message
+					while (spawn_message.startsWith(" "))
+						spawn_message = spawn_message.substring(1);
 					if (!world_name.equals("")) {
+						// format the Nether and End world names to cooordinate with the server's world naming system
 						if (world_name.endsWith(" (The Nether)"))
 							world_name = world_name.substring(0, world_name.length() - 13) + "_nether";
 						else if (world_name.endsWith(" (The End)"))
 							world_name = world_name.substring(0, world_name.length() - 10) + "_the_end";
-						World world = null;
-						for (World my_world : server.getWorlds())
-							if (my_world.getWorldFolder().getName().equals(world_name))
-								world = my_world;
+						World world = server.getWorld(world_name);
 						if (world != null)
 							spawn_messages_by_world.put(world, spawn_message);
+						else
+							sender.sendMessage(ChatColor.RED + "I've never heard of a world called \"" + temp[0] + ".\"");
 					}
 				} else if (parsing.equals("global")) {
 					if (save_line.startsWith("Do you want players to be able to teleport to one another without asking permission?"))
@@ -2182,9 +2190,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						}
 					}
 				} else if (parsing.equals("group") && use_group_settings && permissions != null) {
-					if (!save_line.toLowerCase().startsWith("default warp message: ") && !save_line.toLowerCase().startsWith("default no warp message: ")
-							&& !save_line.toLowerCase().startsWith("max warps: ")
-							&& !save_line.startsWith("Do you want players in this group to be able to teleport to one another without asking permission?")) {
+					if (save_line.split(":").length <= 1 || !save_line.split(":")[0].contains(" ")) {
 						String group_name = "";
 						for (int i = 0; i < save_line.length(); i++) {
 							if (save_line.substring(i, i + 1).equals(":")) {
@@ -2198,11 +2204,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							Object[] data = new Object[default_settings.length];
 							for (int i = 0; i < default_settings.length; i++)
 								data[i] = default_settings[i];
-							boolean done = false, first_line = true;
+							boolean first_line = true;
 							already_progressed = true;
-							while (!done) {
-								if (!first_line)
-									save_line = in.readLine();
+							while (save_line != null) {
 								// eliminate preceding spaces
 								while (save_line.startsWith(" "))
 									save_line = save_line.substring(1);
@@ -2259,20 +2263,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 										}
 									}
 								} else if (!first_line)
-									done = true;
+									break;
 								if (first_line)
 									first_line = false;
+								save_line = in.readLine();
 							}
 							group_settings.put(group_name, data);
 						}
 					}
 				} else if (parsing.equals("individual")) {
-					if (!save_line.toLowerCase().startsWith("default warp message: ") && !save_line.toLowerCase().startsWith("default no warp message: ")
-							&& !save_line.toLowerCase().startsWith("max warps: ")) {
+					if (save_line.split(":").length <= 1 || !save_line.split(":")[0].contains(" ")) {
 						String player_name = "";
-						// eliminate preceding spaces
-						while (save_line.startsWith(" "))
-							save_line = save_line.substring(1);
 						for (int i = 0; i < save_line.length(); i++) {
 							if (save_line.substring(i, i + 1).equals(":")) {
 								player_name = save_line.substring(0, i);
@@ -2292,9 +2293,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									for (int i = 0; i < default_settings.length; i++)
 										player_data[i] = default_settings[i];
 							}
-							boolean done = false, first_line = true;
+							boolean first_line = true;
 							already_progressed = true;
-							while (!done) {
+							while (save_line != null) {
 								if (!first_line)
 									save_line = in.readLine();
 								if (save_line != null) {
@@ -2354,9 +2355,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 											}
 										}
 									} else if (!first_line)
-										done = true;
+										break;
 								} else
-									done = true;
+									break;
 								if (first_line)
 									first_line = false;
 							}
@@ -2377,23 +2378,21 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.DARK_RED + "I got you a present. It's an IOEcxeption in config.txt.");
 			exception.printStackTrace();
 		}
-		if (!failed) {
-			// if a world's spawn message is not configured, use the default
-			for (World world : server.getWorlds()) {
-				if (!spawn_messages_by_world.containsKey(world)) {
-					String world_name = world.getWorldFolder().getName();
-					if (world_name.endsWith("_nether"))
-						world_name = "The Nether";
-					else if (world_name.endsWith("_the_end"))
-						world_name = "The End";
-					spawn_messages_by_world.put(world, "&aWelcome to " + world_name + ", [player].");
-				}
+		// if a world's spawn message is not configured, use the default
+		for (World world : server.getWorlds()) {
+			if (!spawn_messages_by_world.containsKey(world)) {
+				String world_name = world.getWorldFolder().getName();
+				if (world_name.endsWith("_nether"))
+					world_name = "The Nether";
+				else if (world_name.endsWith("_the_end"))
+					world_name = "The End";
+				spawn_messages_by_world.put(world, "&aWelcome to " + world_name + ", [player].");
 			}
-			saveTheConfig(sender, false);
-			sender.sendMessage(ChatColor.GREEN + "Your configurations have been loaded.");
-			if (sender instanceof Player)
-				console.sendMessage(ChatColor.GREEN + sender.getName() + " loaded the myUltraWarps config from file.");
 		}
+		saveTheConfig(sender, false);
+		sender.sendMessage(ChatColor.GREEN + "Your configurations have been loaded.");
+		if (sender instanceof Player)
+			console.sendMessage(ChatColor.GREEN + sender.getName() + " loaded the myUltraWarps config from file.");
 	}
 
 	private void loadTheTemporaryData() {
