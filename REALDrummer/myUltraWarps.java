@@ -92,18 +92,20 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
-	// TODO: redo loadTheConfig()
 	// TODO: make /warps near me comapre the number of blocks it would have to compare with the number of warps and determine which way to search would be
 	// easier. Then, either search by each block in the radius or just search through the warps list
 	// TODO: make /trust
 	// TODO: make anti-spam filters for /to and /from
-	// TODO: make teleportation requests (to and from) rollover
 	// TODO: make on-login info messages rollover
 	// TODO: make /back and /fwd display "(warp [index]/[warp_history.size()])"
 	// TODO: if a player blocks a myUltraWarps admin while he's offline, unblock the admin when he logs on and inform the blocker
 	// TODO: make teleportation to your home on death configurable
 	// TODO: /send request system
 	// TODO: make messages informing of non-default characteristics in a warp in /create
+
+	// FIXED: error that made getFullName() not work properly and use the first username it found rather than the shortest match
+	// FIXED: error that made a NullPointerException when someone tried to name a warp an illegal name like "list"
+	// FIXED: error that made listing people while creating a warp not work
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
@@ -1312,17 +1314,19 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private static String getFullName(String name) {
-		boolean found_online = false;
+		String full_name = null;
 		for (Player possible_owner : server.getOnlinePlayers())
-			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase())) {
-				name = possible_owner.getName();
-				found_online = true;
-			}
-		if (!found_online)
-			for (OfflinePlayer possible_owner : server.getOfflinePlayers())
-				if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase()))
-					name = possible_owner.getName();
-		return name;
+			// if this player's name also matches and it shorter, return it instead becuase if someone is using an autocompleted command, we need to make sure
+			// to get the shortest name because if they meant to use the longer username, they can remedy this by adding more letters to the parameter; however,
+			// if they meant to do a shorter username and the auto-complete finds the longer one first, they're screwed
+			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase())
+					&& (full_name == null || full_name.length() > possible_owner.getName().length()))
+				full_name = possible_owner.getName();
+		for (OfflinePlayer possible_owner : server.getOfflinePlayers())
+			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase())
+					&& (full_name == null || full_name.length() > possible_owner.getName().length()))
+				full_name = possible_owner.getName();
+		return full_name;
 	}
 
 	public static int translateStringtoTimeInms(String written) {
@@ -3121,20 +3125,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				stopParsingMessages(warp_message, no_warp_message, parameters[extra_param], owner, player_is_owner, sender, "");
 			} else if (parameters[j].toLowerCase().startsWith("list:")) {
 				stopParsingMessages(warp_message, no_warp_message, parameters[extra_param], owner, player_is_owner, sender, "");
-				String[] listed_users_list = parameters[j].substring(5).split(",");
-				if (listed_users_list.length > 0 && !(listed_users_list.length == 1 && listed_users_list[0].equals(""))) {
+				listed_users = parameters[j].substring(5).split(",");
+				if (listed_users.length > 0 && !(listed_users.length == 1 && listed_users[0].equals("")))
 					// retrieve full player names
-					for (int i = 0; i < listed_users_list.length; i++)
-						listed_users_list[i] = getFullName(listed_users_list[i]);
-					String[] temp_listed_users = listed_users;
-					listed_users = new String[listed_users_list.length + temp_listed_users.length];
-					for (int i = 0; i < listed_users.length; i++) {
-						if (i < temp_listed_users.length)
-							listed_users[i] = temp_listed_users[i];
-						else
-							listed_users[i] = listed_users_list[i - temp_listed_users.length];
-					}
-				}
+					for (int i = 0; i < listed_users.length; i++)
+						listed_users[i] = getFullName(listed_users[i]);
 			} else if (parsing_warp_message)
 				warp_message = warp_message + " " + parameters[j];
 			else if (parsing_no_warp_message)
@@ -3183,25 +3178,25 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				player.sendMessage(ChatColor.GREEN + "You made a warp called \"" + parameters[extra_param] + ".\"");
 			else
 				player.sendMessage(ChatColor.GREEN + "You made a warp called \"" + parameters[extra_param] + "\" for " + owner + ".");
-		} else if (name.equalsIgnoreCase("info"))
+		} else if (parameters[extra_param].equalsIgnoreCase("info"))
 			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"info\" because it interferes with the command " + ChatColor.GREEN
 					+ "/warp info" + ChatColor.RED + ".");
-		else if (name.equalsIgnoreCase("all"))
+		else if (parameters[extra_param].equalsIgnoreCase("all"))
 			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"all\" because it interferes with the command " + ChatColor.GREEN
 					+ "/warp all" + ChatColor.RED + ".");
-		else if (name.equalsIgnoreCase("list"))
+		else if (parameters[extra_param].equalsIgnoreCase("list"))
 			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"list\" because it interferes with the command " + ChatColor.GREEN
 					+ "/warp list" + ChatColor.RED + ".");
-		else if (name.toLowerCase().endsWith("'s"))
+		else if (parameters[extra_param].toLowerCase().endsWith("'s"))
 			sender.sendMessage(ChatColor.RED
-					+ "Sorry, but you can't make a warp with a name ending in \"'s\" because I check for that to see whether you're specifying an owner or just giving a warp name alone and if the warp name has that I get very confused.");
+					+ "Sorry, but you can't make a warp with a name ending in \"'s\" because I check for that to see whether you're specifying an owner or just giving a warp name alone and if the warp name has that \"'s\", I get very confused.");
 		else if (!player.getName().equalsIgnoreCase(owner)
 				&& !(player.hasPermission("myultrawarps.create.other") || player.hasPermission("myultrawarps.admin"))) {
 			// check if the player receiving the warp already has that warp
 			boolean warp_already_exists = false;
 			for (int i = 0; i < warps.size(); i++)
 				if (warps.get(i).getOwner().toLowerCase().startsWith(owner.toLowerCase())
-						&& warps.get(i).getName().toLowerCase().startsWith(name.toLowerCase()))
+						&& warps.get(i).getName().toLowerCase().startsWith(parameters[extra_param].toLowerCase()))
 					warp_already_exists = true;
 			if (!warp_already_exists) {
 				// find out where the new warp needs to be in the list to be
@@ -5454,6 +5449,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						+ "You want the search centered there? Where? Oh, wait. You're still a console and you still have no fingers to point out a location with.");
 			else
 				target_location = player.getTargetBlock(null, 1024).getLocation();
+			if (target_location.getBlock().getTypeId() == 0)
+				sender.sendMessage(ChatColor.RED + "Sorry, but I can't see that far!");
 		} else if (parameters[extra_param].equalsIgnoreCase("here") || parameters[extra_param].equalsIgnoreCase("me")) {
 			target_name = "you";
 			if (player == null)
@@ -5463,37 +5460,33 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} else
 			sender.sendMessage(ChatColor.RED + "I don't understand what \"" + parameters[extra_param] + "\" means.");
 		if (target_location != null) {
-			boolean radius_screwup = false;
 			if (parameters.length > extra_param + 1) {
 				try {
 					radius = Integer.parseInt(parameters[extra_param + 1]);
 				} catch (NumberFormatException exception) {
 					sender.sendMessage(ChatColor.RED + "Since when is \"" + parameters[extra_param + 1] + "\" an integer?");
-					radius_screwup = true;
+					return;
 				}
 			}
-			if (!radius_screwup) {
-				ArrayList<UltraWarp> nearby_warps = new ArrayList<UltraWarp>();
-				for (int x = target_location.getBlockX() - radius; x < target_location.getBlockX() + radius; x++)
-					for (int y = target_location.getBlockY() - radius; y < target_location.getBlockY() + radius; y++)
-						for (int z = target_location.getBlockZ() - radius; z < target_location.getBlockZ() + radius; z++)
-							for (UltraWarp warp : warps)
-								if ((int) warp.getX() == x && (int) warp.getY() == y && (int) warp.getZ() == z
-										&& warp.getWorld().equals(target_location.getWorld()))
-									nearby_warps.add(warp);
-				if (nearby_warps.size() > 0) {
-					String output = ChatColor.GREEN + "There are " + nearby_warps.size() + " warps within " + radius + " blocks of " + target_name + ": ";
-					if (nearby_warps.size() == 1)
-						output = ChatColor.GREEN + "There is one warp within " + radius + " blocks of " + target_name + ": ";
-					for (UltraWarp warp : nearby_warps) {
-						if (!output.endsWith(": "))
-							output = output + ChatColor.WHITE + ", ";
-						output = output + warp.getColoredOwner() + "'s " + warp.getName();
-					}
-					sender.sendMessage(output);
-				} else
-					sender.sendMessage(ChatColor.RED + "There are no warps within " + radius + " blocks of " + target_name + ".");
-			}
+			ArrayList<UltraWarp> nearby_warps = new ArrayList<UltraWarp>();
+			for (UltraWarp warp : warps)
+				if (warp.getX() >= target_location.getBlockX() - radius && warp.getX() <= target_location.getBlockX() + radius
+						&& warp.getY() >= target_location.getBlockY() - radius && warp.getY() <= target_location.getBlockY() + radius
+						&& warp.getZ() >= target_location.getBlockZ() - radius && warp.getZ() <= target_location.getBlockZ() + radius
+						&& warp.getWorld().equals(target_location.getWorld()))
+					nearby_warps.add(warp);
+			if (nearby_warps.size() > 0) {
+				String output = ChatColor.GREEN + "There are " + nearby_warps.size() + " warps within " + radius + " blocks of " + target_name + ": ";
+				if (nearby_warps.size() == 1)
+					output = ChatColor.GREEN + "There is one warp within " + radius + " blocks of " + target_name + ": ";
+				for (UltraWarp warp : nearby_warps) {
+					if (!output.endsWith(": "))
+						output = output + ChatColor.WHITE + ", ";
+					output = output + warp.getColoredOwner() + "'s " + warp.getName();
+				}
+				sender.sendMessage(output);
+			} else
+				sender.sendMessage(ChatColor.RED + "There are no warps within " + radius + " blocks of " + target_name + ".");
 		}
 	}
 }
