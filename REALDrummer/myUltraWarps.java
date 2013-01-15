@@ -4237,8 +4237,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		for (Player my_player : server.getOnlinePlayers())
 			if (my_player.getName().toLowerCase().startsWith(parameters[0].toLowerCase()))
 				target_player = my_player;
-		// make sure the target was found and isn't blocked
-		if (target_player != null && !target_player.equals(player)
+		// make sure the target was found, isn't blocked, and has permission to teleport to other people (or the person teleporting them is an admin since
+		// admins are supreme)
+		if (target_player != null
+				&& !target_player.equals(player)
+				&& (target_player.hasPermission("myultrawarps.to") || target_player.hasPermission("myultrawarps.user")
+						|| target_player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.admin"))
 				&& (blocked_players.get(target_player.getName()) == null || !blocked_players.get(target_player.getName()).contains(player.getName()))) {
 			if (!(Boolean) data[1] || player.hasPermission("myultrawarps.admin")
 					|| (to_teleport_requests.get(player.getName()) != null && to_teleport_requests.get(player.getName()).contains(target_player.getName()))) {
@@ -4249,9 +4253,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				while (requesting_players.contains(target_player.getName()))
 					requesting_players.remove(target_player.getName());
 				to_teleport_requests.put(player.getName(), requesting_players);
-				if (teleport(target_player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before " + player.getName()
-						+ " teleported you to them.", "", null, target_player.getLocation()), new UltraWarp("God", "coordinates", false, false,
-						"&aThis is the spot you were at when you were teleported to " + player.getName() + ".", "", null, player.getLocation()), false, player)) {
+				if (teleport(target_player, new UltraWarp("&aThis is the spot you were at before " + player.getName() + " teleported you to them.",
+						target_player.getLocation()), new UltraWarp("&aThis is the spot you were at when you were teleported to " + player.getName() + ".",
+						player.getLocation()), false, player)) {
 					target_player.sendMessage(ChatColor.GREEN + "Here's your " + player.getName() + "!");
 					player.sendMessage(ChatColor.GREEN + "Look! I brought you a " + target_player.getName() + "!");
 				}
@@ -4270,6 +4274,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					+ " has blocked you. You can't send them teleportation requests anymore.");
 		else if (target_player != null && target_player.equals(player))
 			player.sendMessage(ChatColor.RED + "Can you explain to me how I'm supposed to teleport you to yourself?");
+		else if (target_player != null && !target_player.hasPermission("myultrawarps.to") && !target_player.hasPermission("myultrawarps.user")
+				&& !target_player.hasPermission("myultrawarps.admin") && !player.hasPermission("myultrawarps.admin"))
+			player.sendMessage(ChatColor.RED + "Sorry, but " + target_player.getName() + " doesn't have permission to teleport to other poeple.");
 		else
 			player.sendMessage(ChatColor.RED + "I couldn't find \"" + parameters[0] + "\" anywhere.");
 	}
