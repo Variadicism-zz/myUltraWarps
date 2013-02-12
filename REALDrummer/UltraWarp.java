@@ -46,24 +46,24 @@ public class UltraWarp {
 		if (listed_users == null)
 			listed_users = new String[0];
 		if (listed_users.length == 0)
-			save_line = save_line + "other users may see \"";
+			save_line += "other users may see \"";
 		else if (listed_users.length == 1) {
-			save_line = save_line + listed_users[0] + " sees \"";
+			save_line += listed_users[0] + " sees \"";
 		} else if (listed_users.length == 2) {
-			save_line = save_line + listed_users[0] + " and " + listed_users[1] + " both see \"";
+			save_line += listed_users[0] + " and " + listed_users[1] + " both see \"";
 		} else
 			for (int i = 0; i < listed_users.length; i++) {
 				if (listed_users.length - 2 > i)
-					save_line = save_line + listed_users[i] + ", ";
+					save_line += listed_users[i] + ", ";
 				else if (listed_users.length - 1 == i)
-					save_line = save_line + listed_users[i] + " all see \"";
+					save_line += listed_users[i] + " all see \"";
 				else
-					save_line = save_line + listed_users[i] + ", and ";
+					save_line += listed_users[i] + ", and ";
 			}
 		if (restricted)
-			save_line = save_line + warp_message + "\".";
+			save_line += warp_message + "\".";
 		else
-			save_line = save_line + no_warp_message + "\".";
+			save_line += no_warp_message + "\".";
 	}
 
 	public UltraWarp(String my_save_line) {

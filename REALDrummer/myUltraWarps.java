@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -41,11 +40,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.World;
@@ -66,17 +63,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	// owner and name are important so that methods can access the name and owner specified by a command as extrapolated by locateWarp() even if locateWarp
 	// returns a null UltraWarp
 	private String owner, name;
-	// index is the index of the warp that locateWarp() found
+	// index is the index in warps of the warp that locateWarp() found
 	private int index;
 	private static ArrayList<UltraWarp> warps = new ArrayList<UltraWarp>();
 	public static ArrayList<UltraSwitch> switches = new ArrayList<UltraSwitch>();
-	// default settings: 0=boolean must request teleportation for /to, 1=boolean must request teleportation for /from, 2=String default warp message format,
-	// 3=String default no warp message format, 4=int maximum number of warps, 5=int cool down time, 6=int warp history length, 7=int death history length
-	private static Object[] default_settings = new Object[8];
+	private static HashMap<String, SettingsSet> settings = new HashMap<String, SettingsSet>();
 	private ArrayList<Object[]> help_pages = new ArrayList<Object[]>();
 	private static boolean use_group_settings = true, autosave_warps = false, autosave_switches = false, autosave_config = true, auto_update = true;
 	private boolean parsing_warp_message = false, parsing_no_warp_message = false;
-	private static HashMap<String, Object[]> group_settings = new HashMap<String, Object[]>(), per_player_settings = new HashMap<String, Object[]>();
 	private static HashMap<World, String> spawn_messages_by_world = new HashMap<World, String>();
 	private static HashMap<String, Boolean> full_list_organization_by_user = new HashMap<String, Boolean>();
 	// [...]_teleport_requests = HashMap<player who would be teleported, ArrayList<player(s) who sent the request(s)>>
@@ -92,8 +86,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
-	// TODO: make /warps near me comapre the number of blocks it would have to compare with the number of warps and determine which way to search would be
-	// easier. Then, either search by each block in the radius or just search through the warps list
+	// TODO FOR ALL PLUGINS: get rid of the "failed" boolean in saving and loading stuff
+	// TODO FOR ALL PLUGINS: change all the [String variable] = [String variable] + [String] to [String variable] += [String]
+	// TODO FOR ALL PLUGINS: on loading stuff, if the file didn't exist, don't say you loaded the stuff. That's a lie.
+	// TODO FOR ALL PLUGINS: search for "while (save_line != null)" and put "if (save_lije.equals("")) continue;" after all of them.
+
+	// TODO: reformulate the /to and /from config questions
+	// TODO: make /home on respawn configurable
+	// TODO: instead of making this weird HashMap<String, Object[]> for various settings, just make objects called SettingsGroup that contains the name of the
+	// group (which can be a player for individual settings), a boolean saying whether it's a group or a player, and all the settings data for them. We'll also
+	// need a method in it to get their settings
 	// TODO: make /trust
 	// TODO: make anti-spam filters for /to and /from
 	// TODO: make on-login info messages rollover
@@ -103,9 +105,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	// TODO: /send request system
 	// TODO: make messages informing of non-default characteristics in a warp in /create
 
-	// FIXED: error that made getFullName() not work properly and use the first username it found rather than the shortest match
-	// FIXED: error that made a NullPointerException when someone tried to name a warp an illegal name like "list"
-	// FIXED: error that made listing people while creating a warp not work
+	// DONE: changed check for myultrawarps.to permission for accepting /from requests to new permission "myultrawarps.from.accept"
+	// DONE: revamped the settings setup
+	// DONE: made changing max warps with a command only affect the target and not everything else below it that it applies to
 
 	// plugin enable/disable and the command operator
 	public void onEnable() {
@@ -1329,6 +1331,21 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return full_name;
 	}
 
+	private SettingsSet getSettings(String player) {
+		// prioritize by searching first for individual settings, then group settings if you can't find individual settings, the server-wide (global) settings
+		// if you can't find group settings
+		if (settings.get(player) != null)
+			return settings.get(player);
+		else if (use_group_settings && permissions != null && permissions.getPrimaryGroup(player, null) != null
+				&& settings.get(permissions.getPrimaryGroup(player, null)) != null)
+			return settings.get(permissions.getPrimaryGroup(player, null));
+		else if (settings.get("[server]") != null)
+			return settings.get("[server]");
+		// if by some bizzare occurrence the server settings don't exist, return a SettingsSet with the default settings
+		else
+			return new SettingsSet();
+	}
+
 	public static int translateStringtoTimeInms(String written) {
 		int time = 0;
 		String[] temp = written.split(" ");
@@ -1389,7 +1406,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return time;
 	}
 
-	public static String translateTimeInmsToString(int time, boolean round_seconds) {
+	public static String translateTimeInmsToString(long time, boolean round_seconds) {
 		// get the values (e.g. "2 days" or "55.7 seconds")
 		ArrayList<String> values = new ArrayList<String>();
 		if (time > 86400000) {
@@ -1433,20 +1450,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	public boolean teleport(Player player, UltraWarp from, UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
-		// get the player's cooldown time
-		int cooldown_time = (Integer) default_settings[5];
-		if (use_group_settings && permissions != null && permissions.getPrimaryGroup(player) != null
-				&& group_settings.get(permissions.getPrimaryGroup(player)) != null)
-			cooldown_time = (Integer) group_settings.get(permissions.getPrimaryGroup(player))[5];
-		if (per_player_settings.get(player.getName()) != null)
-			cooldown_time = (Integer) per_player_settings.get(player.getName())[5];
+		SettingsSet set = getSettings(player.getName());
 		// stop here if the cooldown timer has not finished
 		if (cooling_down_players.containsKey(player.getName())
 				&& !player.hasPermission("myultrawarps.admin")
 				&& (non_teleporting_player == null || (non_teleporting_player instanceof Player && !non_teleporting_player.hasPermission("myultrawarps.admin")))) {
 			player.sendMessage(ChatColor.RED
 					+ "Sorry, but you still have to wait "
-					+ translateTimeInmsToString(cooldown_time - (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())),
+					+ translateTimeInmsToString(set.cooldown - (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())),
 							true) + " before you can teleport again.");
 			if (non_teleporting_player != null)
 				// in some instances like /to or /from, other players are involved in the telportation. These players need to be informed of cool down timer
@@ -1455,7 +1466,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						+ "Sorry, but "
 						+ player.getName()
 						+ " can't teleport for another "
-						+ translateTimeInmsToString(cooldown_time
+						+ translateTimeInmsToString(set.cooldown
 								- (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())), true) + ".");
 			return false;
 		}
@@ -1476,19 +1487,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			replacement.add(from);
 			// save the player's location after warping
 			replacement.add(to);
-			int warp_history_length = (Integer) default_settings[6];
-			if (permissions != null && permissions.getPrimaryGroup(player) != null && use_group_settings
-					&& group_settings.containsKey(permissions.getPrimaryGroup(player)))
-				warp_history_length = (Integer) group_settings.get(permissions.getPrimaryGroup(player))[6];
-			if (per_player_settings.containsKey(player.getName()))
-				warp_history_length = (Integer) per_player_settings.get(player.getName())[6];
-			while (replacement.size() > warp_history_length)
+			while (replacement.size() > set.warp_history_length)
 				replacement.remove(0);
 			warp_histories.put(player.getName(), replacement);
 			last_warp_indexes.put(player.getName(), replacement.size() - 1);
 		}
 		// start the cool down timer if necessary
-		if (cooldown_time > 0) {
+		if (set.cooldown > 0) {
 			// record the time that the timer starts
 			cooling_down_players.put(player.getName(), Calendar.getInstance().getTimeInMillis());
 			// the Bukkit scheduler is timed using a tick 20 times/second; therefore, the cooldown time (which is in ms) is divided by 50: /1000 to convert
@@ -1499,7 +1504,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				public void run() {
 					cooling_down_players.remove(player_name);
 				}
-			}, cooldown_time / 50);
+			}, set.cooldown / 50);
 		}
 		return true;
 	}
@@ -1524,18 +1529,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					event.getPlayer().sendMessage(message);
 			// remove a player's cooling down status if necessary
 			// I would have it check when it's loading the temporary data concerning cooling down players, but the player needs to be online for me to check all
-			// their permissions, so I have to check it when the y log on instead
-			if (cooling_down_players.containsKey(event.getPlayer().getName())) {
-				// get the player's cooldown time
-				int cooldown_time = (Integer) default_settings[5];
-				if (use_group_settings && permissions != null && permissions.getPrimaryGroup(event.getPlayer()) != null
-						&& group_settings.get(permissions.getPrimaryGroup(event.getPlayer())) != null)
-					cooldown_time = (Integer) group_settings.get(permissions.getPrimaryGroup(event.getPlayer()))[5];
-				if (per_player_settings.get(event.getPlayer().getName()) != null)
-					cooldown_time = (Integer) per_player_settings.get(event.getPlayer().getName())[5];
-				if (cooling_down_players.get(event.getPlayer().getName()) + cooldown_time < Calendar.getInstance().getTimeInMillis())
-					cooling_down_players.remove(event.getPlayer().getName());
-			}
+			// their permissions, so I have to check it when they log on instead
+			if (cooling_down_players.containsKey(event.getPlayer().getName())
+					&& cooling_down_players.get(event.getPlayer().getName()) + getSettings(event.getPlayer().getName()).cooldown < Calendar.getInstance()
+							.getTimeInMillis())
+				cooling_down_players.remove(event.getPlayer().getName());
 		}
 	}
 
@@ -1774,12 +1772,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			}
 		} else if (from_teleport_requests.get(event.getPlayer().getName()) != null && from_teleport_requests.get(event.getPlayer().getName()).size() > 0) {
 			// event.getPlayer() is the one teleporting here!
-			Player non_teleporting_player = null;
-			for (Player player : server.getOnlinePlayers())
-				if (from_teleport_requests.get(event.getPlayer().getName()).get(0).equals(player.getName())) {
-					non_teleporting_player = player;
-					break;
-				}
+			Player non_teleporting_player = server.getPlayer(from_teleport_requests.get(event.getPlayer().getName()).get(0));
+			// if the target player went offline, tell this player
 			if (non_teleporting_player == null) {
 				event.getPlayer().sendMessage(
 						ChatColor.RED + from_teleport_requests.get(event.getPlayer().getName()).get(0) + " must have gone offline. Sorry.");
@@ -1807,6 +1801,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				}
 			} else if (accepted != null) {
 				event.setCancelled(true);
+				// inform both players
 				if (!event.getMessage().endsWith(".") && !event.getMessage().endsWith("!") && !event.getMessage().endsWith("?")) {
 					event.getPlayer().sendMessage(
 							ChatColor.GREEN + "Okay. I'll tell " + non_teleporting_player.getName() + " that you said \"" + event.getMessage() + ".\"");
@@ -1836,13 +1831,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		if (replacement == null)
 			replacement = new ArrayList<Location>();
 		replacement.add(event.getEntity().getLocation());
-		int death_history_length = (Integer) default_settings[7];
-		if (permissions != null && permissions.getPrimaryGroup(event.getEntity()) != null && use_group_settings
-				&& group_settings.containsKey(permissions.getPrimaryGroup(event.getEntity())))
-			death_history_length = (Integer) group_settings.get(permissions.getPrimaryGroup(event.getEntity()))[7];
-		if (per_player_settings.containsKey(event.getEntity().getName()))
-			death_history_length = (Integer) per_player_settings.get(event.getEntity().getName())[7];
-		while (replacement.size() > death_history_length)
+		while (replacement.size() > getSettings(event.getEntity().getName()).death_history_length)
 			replacement.remove(0);
 		console.sendMessage("death history length=" + replacement.size());
 		death_histories.put(event.getEntity().getName(), replacement);
@@ -1851,112 +1840,102 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	// loading
 	private void loadTheWarps(CommandSender sender) {
-		boolean failed = false;
 		warps = new ArrayList<UltraWarp>();
 		// check the warps file
 		File warps_file = new File(getDataFolder(), "warps.txt");
-		if (!warps_file.exists()) {
-			getDataFolder().mkdir();
-			try {
-				console.sendMessage(ChatColor.GREEN + "I couldn't find a warps.txt file. I'll make a new one.");
-				warps_file.createNewFile();
-			} catch (IOException exception) {
-				console.sendMessage(ChatColor.DARK_RED + "I couldn't create a warps.txt file! Oh nos!");
-				exception.printStackTrace();
-				failed = true;
-			}
-		}
 		// read the warps.txt file
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(warps_file));
-			String save_line = in.readLine();
-			while (save_line != null) {
-				warps.add(new UltraWarp(save_line));
-				save_line = in.readLine();
-				continue;
+			if (!warps_file.exists()) {
+				getDataFolder().mkdir();
+				console.sendMessage(ChatColor.GREEN + "I couldn't find a warps.txt file. I'll make a new one.");
+				warps_file.createNewFile();
+			} else {
+				BufferedReader in = new BufferedReader(new FileReader(warps_file));
+				String save_line = in.readLine();
+				while (save_line != null) {
+					if (save_line.equals(""))
+						continue;
+					warps.add(new UltraWarp(save_line));
+					save_line = in.readLine();
+					continue;
+				}
+				in.close();
+				if (warps.size() > 1) {
+					// alphabetize the warps by name (by owner secondarily)
+					ArrayList<UltraWarp> temp_warps = new ArrayList<UltraWarp>();
+					for (UltraWarp warp : warps)
+						temp_warps.add(warp);
+					warps = new ArrayList<UltraWarp>();
+					UltraWarp first_warp;
+					int delete_index;
+					while (temp_warps.size() > 0) {
+						first_warp = temp_warps.get(0);
+						delete_index = 0;
+						for (int j = 0; j < temp_warps.size(); j++) {
+							if (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) < 0
+									|| (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) == 0 && temp_warps.get(j).getOwner()
+											.compareToIgnoreCase(first_warp.getOwner()) < 0)) {
+								first_warp = temp_warps.get(j);
+								delete_index = j;
+							}
+						}
+						// rename warps named "info", "all", or "list"
+						if (!first_warp.getName().equalsIgnoreCase("info") && !first_warp.getName().equalsIgnoreCase("all")
+								&& !first_warp.getName().equalsIgnoreCase("list"))
+							warps.add(first_warp);
+						else {
+							UltraWarp renamed_first_warp =
+									new UltraWarp(first_warp.getOwner(), "my" + first_warp.getName(), first_warp.isListed(), first_warp.isRestricted(),
+											first_warp.getWarpMessage(), first_warp.getNoWarpMessage(), first_warp.getListedUsers(), first_warp.getLocation());
+							warps.add(renamed_first_warp);
+							boolean found = false;
+							for (Player renamed_warp_owner : server.getOnlinePlayers())
+								if (renamed_warp_owner.getName().equals(first_warp.getOwner())) {
+									renamed_warp_owner.sendMessage(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
+											+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName()
+											+ ChatColor.RED + ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
+									found = true;
+								}
+							if (!found) {
+								// info the player that his/her warp has been renamed
+								ArrayList<String> messages = info_messages_for_players.get(first_warp.getOwner());
+								if (messages == null)
+									messages = new ArrayList<String>();
+								messages.add(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
+										+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName()
+										+ ChatColor.RED + ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
+								info_messages_for_players.put(first_warp.getOwner(), messages);
+							}
+						}
+						temp_warps.remove(delete_index);
+					}
+				}
+				saveTheWarps(sender, false);
+				// send the sender a confirmation message
+				if (warps.size() > 1)
+					sender.sendMessage(ChatColor.GREEN + "Your " + warps.size() + " warps have been loaded.");
+				else if (warps.size() == 1)
+					sender.sendMessage(ChatColor.GREEN + "Your 1 warp has been loaded.");
+				else
+					sender.sendMessage(ChatColor.GREEN + "You have no warps to load!");
+				if (sender instanceof Player)
+					if (warps.size() > 1)
+						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded " + warps.size() + " warps from file.");
+					else if (warps.size() == 1)
+						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 warp from file.");
+					else
+						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
+								+ " loaded the server's warps from file, but there were no warps on file.");
 			}
-			in.close();
-		} catch (FileNotFoundException exception) {
-			console.sendMessage(ChatColor.DARK_RED + "The warps.txt I created a few milliseconds ago doesn't exist. -_-");
-			exception.printStackTrace();
 		} catch (IOException exception) {
 			console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your warps.");
 			exception.printStackTrace();
-			failed = true;
-		}
-		if (!failed) {
-			if (warps.size() > 1) {
-				// alphabetize the warps by name (by owner secondarily)
-				ArrayList<UltraWarp> temp_warps = new ArrayList<UltraWarp>();
-				for (UltraWarp warp : warps)
-					temp_warps.add(warp);
-				warps = new ArrayList<UltraWarp>();
-				UltraWarp first_warp;
-				int delete_index;
-				while (temp_warps.size() > 0) {
-					first_warp = temp_warps.get(0);
-					delete_index = 0;
-					for (int j = 0; j < temp_warps.size(); j++) {
-						if (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) < 0
-								|| (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) == 0 && temp_warps.get(j).getOwner()
-										.compareToIgnoreCase(first_warp.getOwner()) < 0)) {
-							first_warp = temp_warps.get(j);
-							delete_index = j;
-						}
-					}
-					// rename warps named "info", "all", or "list"
-					if (!first_warp.getName().equalsIgnoreCase("info") && !first_warp.getName().equalsIgnoreCase("all")
-							&& !first_warp.getName().equalsIgnoreCase("list"))
-						warps.add(first_warp);
-					else {
-						UltraWarp renamed_first_warp =
-								new UltraWarp(first_warp.getOwner(), "my" + first_warp.getName(), first_warp.isListed(), first_warp.isRestricted(), first_warp
-										.getWarpMessage(), first_warp.getNoWarpMessage(), first_warp.getListedUsers(), first_warp.getLocation());
-						warps.add(renamed_first_warp);
-						boolean found = false;
-						for (Player renamed_warp_owner : server.getOnlinePlayers())
-							if (renamed_warp_owner.getName().equals(first_warp.getOwner())) {
-								renamed_warp_owner.sendMessage(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
-										+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName()
-										+ ChatColor.RED + ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
-								found = true;
-							}
-						if (!found) {
-							// info the player that his/her warp has been renamed
-							ArrayList<String> messages = info_messages_for_players.get(first_warp.getOwner());
-							if (messages == null)
-								messages = new ArrayList<String>();
-							messages.add(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
-									+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName() + ChatColor.RED
-									+ ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
-							info_messages_for_players.put(first_warp.getOwner(), messages);
-						}
-					}
-					temp_warps.remove(delete_index);
-				}
-			}
-			saveTheWarps(sender, false);
-			// send the sender a confirmation message
-			if (warps.size() > 1)
-				sender.sendMessage(ChatColor.GREEN + "Your " + warps.size() + " warps have been loaded.");
-			else if (warps.size() == 1)
-				sender.sendMessage(ChatColor.GREEN + "Your 1 warp has been loaded.");
-			else
-				sender.sendMessage(ChatColor.GREEN + "You have no warps to load!");
-			if (sender instanceof Player)
-				if (warps.size() > 1)
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded " + warps.size() + " warps from file.");
-				else if (warps.size() == 1)
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 warp from file.");
-				else
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-							+ " loaded the server's warps from file, but there were no warps on file.");
+			return;
 		}
 	}
 
 	private void loadTheSwitches(CommandSender sender) {
 		// check the switches file
-		boolean failed = false;
 		switches = new ArrayList<UltraSwitch>();
 		File switches_file = new File(getDataFolder(), "switches.txt");
 		if (!switches_file.exists()) {
@@ -1974,57 +1953,55 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			BufferedReader in = new BufferedReader(new FileReader(switches_file));
 			String save_line = in.readLine();
 			while (save_line != null) {
+				if (save_line.equals(""))
+					continue;
 				switches.add(new UltraSwitch(save_line));
 				save_line = in.readLine();
 			}
 			in.close();
-		} catch (FileNotFoundException exception) {
-			sender.sendMessage(ChatColor.DARK_RED + "The switches.txt I created a few milliseconds ago doesn't exist. -_-");
-			exception.printStackTrace();
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got you a present. It's an IOEcxeption in config.txt.");
 			exception.printStackTrace();
+			return;
 		}
-		if (!failed) {
-			if (switches.size() > 1) {
-				// alphabetize the switches by warp name (by owner secondarily)
-				ArrayList<UltraSwitch> temp_switches = new ArrayList<UltraSwitch>();
-				for (UltraSwitch my_switch : switches)
-					temp_switches.add(my_switch);
-				switches = new ArrayList<UltraSwitch>();
-				UltraSwitch first_switch;
-				int delete_index;
-				while (temp_switches.size() > 0) {
-					first_switch = temp_switches.get(0);
-					delete_index = 0;
-					for (int j = 0; j < temp_switches.size(); j++) {
-						if (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) < 0
-								|| (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) == 0 && temp_switches.get(j)
-										.getWarpOwner().compareToIgnoreCase(first_switch.getWarpOwner()) < 0)) {
-							first_switch = temp_switches.get(j);
-							delete_index = j;
-						}
+		if (switches.size() > 1) {
+			// alphabetize the switches by warp name (by owner secondarily)
+			ArrayList<UltraSwitch> temp_switches = new ArrayList<UltraSwitch>();
+			for (UltraSwitch my_switch : switches)
+				temp_switches.add(my_switch);
+			switches = new ArrayList<UltraSwitch>();
+			UltraSwitch first_switch;
+			int delete_index;
+			while (temp_switches.size() > 0) {
+				first_switch = temp_switches.get(0);
+				delete_index = 0;
+				for (int j = 0; j < temp_switches.size(); j++) {
+					if (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) < 0
+							|| (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) == 0 && temp_switches.get(j).getWarpOwner()
+									.compareToIgnoreCase(first_switch.getWarpOwner()) < 0)) {
+						first_switch = temp_switches.get(j);
+						delete_index = j;
 					}
-					switches.add(first_switch);
-					temp_switches.remove(delete_index);
 				}
+				switches.add(first_switch);
+				temp_switches.remove(delete_index);
 			}
-			saveTheSwitches(sender, false);
-			if (switches.size() > 1)
-				sender.sendMessage(ChatColor.GREEN + "Your " + switches.size() + " switches have been loaded.");
-			else if (switches.size() == 1)
-				sender.sendMessage(ChatColor.GREEN + "Your 1 switch has been loaded.");
-			else
-				sender.sendMessage(ChatColor.GREEN + "You have no switches to load!");
-			if (sender instanceof Player)
-				if (switches.size() > 1)
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded " + warps.size() + " switches from file.");
-				else if (switches.size() == 1)
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 switch from file.");
-				else
-					console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-							+ " loaded the server's switches from file, but there were no switches on file.");
 		}
+		saveTheSwitches(sender, false);
+		if (switches.size() > 1)
+			sender.sendMessage(ChatColor.GREEN + "Your " + switches.size() + " switches have been loaded.");
+		else if (switches.size() == 1)
+			sender.sendMessage(ChatColor.GREEN + "Your 1 switch has been loaded.");
+		else
+			sender.sendMessage(ChatColor.GREEN + "You have no switches to load!");
+		if (sender instanceof Player)
+			if (switches.size() > 1)
+				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded " + warps.size() + " switches from file.");
+			else if (switches.size() == 1)
+				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 switch from file.");
+			else
+				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
+						+ " loaded the server's switches from file, but there were no switches on file.");
 	}
 
 	private void loadTheConfig(CommandSender sender) {
@@ -2063,16 +2040,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.RED + "...but I can't find your permissions plugin.");
 			}
 		}
-		default_settings[0] = true;
-		default_settings[1] = true;
-		default_settings[2] = "&aWelcome to the [warp].";
-		default_settings[3] = "&cYou're not allowed to warp to [owner]'s [warp].";
-		default_settings[4] = -1;
-		default_settings[5] = 0;
-		default_settings[6] = 20;
-		default_settings[7] = 5;
-		per_player_settings = new HashMap<String, Object[]>();
-		group_settings = new HashMap<String, Object[]>();
+		settings = new HashMap<String, SettingsSet>();
 		// check the config file
 		File config_file = new File(getDataFolder(), "config.txt");
 		if (!config_file.exists()) {
@@ -2089,10 +2057,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		// read the config.txt file
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(config_file));
-			String save_line = in.readLine(), parsing = "";
-			boolean already_progressed;
+			String save_line = in.readLine(), parsing = "", parsing_group = null, parsing_player = null;
 			while (save_line != null) {
-				already_progressed = false;
+				if (save_line.equals(""))
+					continue;
 				// eliminate preceding spaces
 				while (save_line.startsWith(" "))
 					save_line = save_line.substring(1);
@@ -2147,237 +2115,214 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							sender.sendMessage(ChatColor.RED + "I've never heard of a world called \"" + temp[0] + ".\"");
 					}
 				} else if (parsing.equals("global")) {
+					SettingsSet global_set = settings.get("[server]");
+					// if the global settings set doesn't exist yet, start a new SettingsSet
+					if (global_set == null)
+						global_set = new SettingsSet();
+					// read!
 					if (save_line.startsWith("Do you want players to be able to teleport to one another without asking permission?"))
-						default_settings[0] =
+						global_set.must_request_to =
 								!getResponse(sender, save_line.substring(84), in.readLine(), "Right now, players can teleport to each other freely.");
 					else if (save_line.startsWith("Do you want players to be able teleport other players places without asking permission?"))
-						default_settings[1] =
+						global_set.must_request_from =
 								!getResponse(sender, save_line.substring(87), in.readLine(), "Right now, players can teleport each other to them freely.");
 					else if (save_line.toLowerCase().startsWith("default warp message: "))
-						default_settings[2] = save_line.substring(22);
+						global_set.default_warp = save_line.substring(22);
 					else if (save_line.toLowerCase().startsWith("default no warp message: "))
-						default_settings[3] = save_line.substring(25);
+						global_set.default_no_warp = save_line.substring(25);
 					else if (save_line.toLowerCase().startsWith("max warps: ")) {
 						try {
-							default_settings[4] = Integer.parseInt(save_line.substring(11));
+							global_set.max_warps = Integer.parseInt(save_line.substring(11));
 						} catch (NumberFormatException exception) {
-							default_settings[4] = -1;
-							if (!save_line.substring(11).equalsIgnoreCase("infinite")) {
+							if (save_line.substring(11).equalsIgnoreCase("infinite"))
+								global_set.max_warps = -1;
+							else {
 								sender.sendMessage(ChatColor.RED + "There was an error in your global settings.");
 								sender.sendMessage(ChatColor.RED + "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
-								sender.sendMessage(ChatColor.RED + "I'm setting the global max number of warps to \"infinite.\"");
 							}
 						}
 					} else if (save_line.toLowerCase().startsWith("cool down time: "))
-						default_settings[5] = translateStringtoTimeInms(save_line.substring(16));
+						global_set.cooldown = translateStringtoTimeInms(save_line.substring(16));
 					else if (save_line.toLowerCase().startsWith("warp history length: ")) {
 						try {
-							default_settings[6] = Integer.parseInt(save_line.substring(21));
+							global_set.warp_history_length = Integer.parseInt(save_line.substring(21));
 						} catch (NumberFormatException exception) {
-							default_settings[6] = -1;
-							if (!save_line.substring(21).equalsIgnoreCase("infinite")) {
+							if (save_line.substring(21).equalsIgnoreCase("infinite"))
+								global_set.warp_history_length = -1;
+							else {
 								sender.sendMessage(ChatColor.RED + "There was an error in your global settings.");
 								sender.sendMessage(ChatColor.RED + "The warp history length has to be an integer or \"infinite.\"");
-								sender.sendMessage(ChatColor.RED + "I'm setting the global warp history length to \"infinite.\"");
 							}
 						}
 					} else if (save_line.toLowerCase().startsWith("death history length: ")) {
 						try {
-							default_settings[7] = Integer.parseInt(save_line.substring(22));
+							global_set.death_history_length = Integer.parseInt(save_line.substring(22));
 						} catch (NumberFormatException exception) {
-							default_settings[7] = -1;
-							if (!save_line.substring(22).equalsIgnoreCase("infinite")) {
+							if (save_line.substring(22).equalsIgnoreCase("infinite"))
+								global_set.death_history_length = -1;
+							else {
 								sender.sendMessage(ChatColor.RED + "There was an error in your global settings.");
 								sender.sendMessage(ChatColor.RED + "The death history length has to be an integer or \"infinite.\"");
-								sender.sendMessage(ChatColor.RED + "I'm setting the global death history length to \"infinite.\"");
 							}
 						}
 					}
+					// update settings
+					settings.put("[server]", global_set);
 				} else if (parsing.equals("group") && use_group_settings && permissions != null) {
+					// if it's the beginning of a set, get the group name; otherwise, we're probably in the middle of a set, so just use the parsing_group
+					// that's already there
 					if (save_line.split(":").length <= 1 || !save_line.split(":")[0].contains(" ")) {
-						String group_name = "";
-						for (int i = 0; i < save_line.length(); i++) {
-							if (save_line.substring(i, i + 1).equals(":")) {
-								group_name = save_line.substring(0, i);
-								int temp_i = i;
-								i = save_line.length();
-								save_line = save_line.substring(temp_i + 1);
+						parsing_group = save_line.split(":")[0];
+						save_line = save_line.split(":")[1];
+					}
+					if (parsing_group != null && !parsing_group.equals("")) {
+						SettingsSet group_set = settings.get("[" + parsing_group + "]");
+						// if a SettingsSet for this group doesn't exist yet, start a new one
+						if (group_set == null)
+							// default to server settings, but if they don't exist yet, use myUltraWarps defaults
+							if (settings.get("[server]") != null)
+								group_set = settings.get("[server]");
+							else
+								group_set = new SettingsSet();
+						// read!
+						// eliminate preceding spaces
+						while (save_line.startsWith(" "))
+							save_line = save_line.substring(1);
+						if (save_line.startsWith("Do you want players in this group to be able to teleport to one another without asking permission?"))
+							group_set.must_request_to =
+									!getResponse(sender, save_line.substring(99), in.readLine(),
+											"Right now, players in this group can teleport to each other freely.");
+						else if (save_line
+								.startsWith("Do you want players in this group to be able to teleport other players places without asking permission?"))
+							group_set.must_request_from =
+									!getResponse(sender, save_line.substring(104), in.readLine(), "Right now, players can teleport each other to them freely.");
+						else if (save_line.toLowerCase().startsWith("default warp message: "))
+							group_set.default_warp = save_line.substring(22);
+						else if (save_line.toLowerCase().startsWith("default no warp message: "))
+							group_set.default_no_warp = save_line.substring(25);
+						else if (save_line.toLowerCase().startsWith("max warps: ")) {
+							try {
+								group_set.max_warps = Integer.parseInt(save_line.substring(11));
+							} catch (NumberFormatException exception) {
+								if (save_line.substring(11).equalsIgnoreCase("infinite"))
+									group_set.max_warps = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
+									sender.sendMessage(ChatColor.RED
+											+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
+								}
+							}
+						} else if (save_line.toLowerCase().startsWith("cool down time: "))
+							group_set.cooldown = translateStringtoTimeInms(save_line.substring(16));
+						else if (save_line.toLowerCase().startsWith("warp history length: ")) {
+							try {
+								group_set.warp_history_length = Integer.parseInt(save_line.substring(21));
+							} catch (NumberFormatException exception) {
+								if (save_line.substring(21).equalsIgnoreCase("infinite"))
+									group_set.warp_history_length = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
+									sender.sendMessage(ChatColor.RED + "The warp history length to be an integer or \"infinite.\"");
+								}
+							}
+						} else if (save_line.toLowerCase().startsWith("death history length: ")) {
+							try {
+								group_set.death_history_length = Integer.parseInt(save_line.substring(22));
+							} catch (NumberFormatException exception) {
+								if (save_line.substring(22).equalsIgnoreCase("infinite"))
+									group_set.death_history_length = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
+									sender.sendMessage(ChatColor.RED + "The death history length has to be an integer or \"infinite.\"");
+								}
 							}
 						}
-						if (!group_name.equals("")) {
-							Object[] data = new Object[default_settings.length];
-							for (int i = 0; i < default_settings.length; i++)
-								data[i] = default_settings[i];
-							boolean first_line = true;
-							already_progressed = true;
-							while (save_line != null) {
-								// eliminate preceding spaces
-								while (save_line.startsWith(" "))
-									save_line = save_line.substring(1);
-								if (save_line.startsWith("Do you want players in this group to be able to teleport to one another without asking permission?"))
-									data[0] =
-											!getResponse(sender, save_line.substring(99), in.readLine(),
-													"Right now, players in this group can teleport to each other freely.");
-								else if (save_line
-										.startsWith("Do you want players in this group to be able to teleport other players places without asking permission?"))
-									data[1] =
-											!getResponse(sender, save_line.substring(104), in.readLine(),
-													"Right now, players can teleport each other to them freely.");
-								else if (save_line.toLowerCase().startsWith("default warp message: "))
-									data[2] = save_line.substring(22);
-								else if (save_line.toLowerCase().startsWith("default no warp message: "))
-									data[3] = save_line.substring(25);
-								else if (save_line.toLowerCase().startsWith("max warps: ")) {
-									try {
-										data[4] = Integer.parseInt(save_line.substring(11));
-									} catch (NumberFormatException exception) {
-										data[4] = -1;
-										if (!save_line.substring(11).equalsIgnoreCase("infinite")) {
-											sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
-											sender.sendMessage(ChatColor.RED
-													+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
-											sender.sendMessage(ChatColor.RED + "I'm setting the max number of warps for players in the \"" + group_name
-													+ "\" group to \"infinite.\"");
-										}
-									}
-								} else if (save_line.toLowerCase().startsWith("cool down time: "))
-									data[5] = translateStringtoTimeInms(save_line.substring(16));
-								else if (save_line.toLowerCase().startsWith("warp history length: ")) {
-									try {
-										data[6] = Integer.parseInt(save_line.substring(21));
-									} catch (NumberFormatException exception) {
-										data[6] = -1;
-										if (!save_line.substring(21).equalsIgnoreCase("infinite")) {
-											sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
-											sender.sendMessage(ChatColor.RED + "The warp history length to be an integer or \"infinite.\"");
-											sender.sendMessage(ChatColor.RED + "I'm setting the warp history length for players in the \"" + group_name
-													+ "\" group to \"infinite.\"");
-										}
-									}
-								} else if (save_line.toLowerCase().startsWith("death history length: ")) {
-									try {
-										data[7] = Integer.parseInt(save_line.substring(22));
-									} catch (NumberFormatException exception) {
-										data[7] = -1;
-										if (!save_line.substring(22).equalsIgnoreCase("infinite")) {
-											sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
-											sender.sendMessage(ChatColor.RED + "The death history length has to be an integer or \"infinite.\"");
-											sender.sendMessage(ChatColor.RED + "I'm setting the death history length for players in the \"" + group_name
-													+ "\" group to \"infinite.\"");
-										}
-									}
-								} else if (!first_line)
-									break;
-								if (first_line)
-									first_line = false;
-								save_line = in.readLine();
-							}
-							group_settings.put(group_name, data);
-						}
+						settings.put(parsing_group, group_set);
 					}
 				} else if (parsing.equals("individual")) {
+					// if it's the beginning of a set, get the player's name; otherwise, we're probably in the middle of a set, so just use the parsing_player
+					// that's already there
 					if (save_line.split(":").length <= 1 || !save_line.split(":")[0].contains(" ")) {
-						String player_name = "";
-						for (int i = 0; i < save_line.length(); i++) {
-							if (save_line.substring(i, i + 1).equals(":")) {
-								player_name = save_line.substring(0, i);
-								int temp_i = i;
-								i = save_line.length();
-								save_line = save_line.substring(temp_i + 1);
+						parsing_player = save_line.split(":")[0];
+						save_line = save_line.split(":")[1];
+					}
+					if (!parsing_player.equals("") && !parsing_player.equals("1mAnExampl3")) {
+						SettingsSet player_set = settings.get(parsing_player);
+						// if a SettingsSet for this group doesn't exist yet, start a new one
+						if (player_set == null)
+							// default to group settings
+							if (use_group_settings && permissions != null && permissions.getPrimaryGroup(parsing_player, null) != null
+									&& settings.get(permissions.getPrimaryGroup(parsing_player, null)) != null)
+								player_set = settings.get(permissions.getPrimaryGroup(parsing_player, null));
+							// if the group settings for this player aren't available, default ot server settings
+							else if (settings.get("[server]") != null)
+								player_set = settings.get("[server]");
+							// if server settings don't exist yet either for some strange reason, use myUltraWarps defaults
+							else
+								player_set = new SettingsSet();
+						// read!
+						// eliminate preceding spaces
+						while (save_line.startsWith(" "))
+							save_line = save_line.substring(1);
+						if (save_line.startsWith("Do you want " + parsing_player + " to be able to teleport to others without asking permission?"))
+							player_set.must_request_to =
+									!getResponse(sender, save_line.substring(72 + parsing_player.length()), in.readLine(), "Right now, " + parsing_player
+											+ " can teleport freely.");
+						else if (save_line.startsWith("Do you want " + parsing_player
+								+ " to be able to teleport other players places without asking permission?"))
+							player_set.must_request_from =
+									!getResponse(sender, save_line.substring(83 + parsing_player.length()), in.readLine(), "Right now, " + parsing_player
+											+ " can teleport others to them freely.");
+						else if (save_line.toLowerCase().startsWith("default warp message: "))
+							player_set.default_warp = save_line.substring(22);
+						else if (save_line.toLowerCase().startsWith("default no warp message: "))
+							player_set.default_no_warp = save_line.substring(25);
+						else if (save_line.toLowerCase().startsWith("max warps: ")) {
+							try {
+								player_set.max_warps = Integer.parseInt(save_line.substring(11));
+							} catch (NumberFormatException exception) {
+								if (save_line.substring(11).equalsIgnoreCase("infinite"))
+									player_set.max_warps = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
+									sender.sendMessage(ChatColor.RED
+											+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
+								}
+							}
+						} else if (save_line.toLowerCase().startsWith("cool down time: "))
+							player_set.cooldown = translateStringtoTimeInms(save_line.substring(16));
+						else if (save_line.toLowerCase().startsWith("warp history length: ")) {
+							try {
+								player_set.warp_history_length = Integer.parseInt(save_line.substring(21));
+							} catch (NumberFormatException exception) {
+								player_set.warp_history_length = -1;
+								if (save_line.substring(21).equalsIgnoreCase("infinite"))
+									player_set.warp_history_length = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
+									sender.sendMessage(ChatColor.RED + "The warp history length has to be an integer or \"infinite.\"");
+									sender.sendMessage(ChatColor.RED + "I'm setting the warp history length for " + parsing_player + " to \"infinite.\"");
+								}
+							}
+						} else if (save_line.toLowerCase().startsWith("death history length: ")) {
+							try {
+								player_set.death_history_length = Integer.parseInt(save_line.substring(22));
+							} catch (NumberFormatException exception) {
+								if (save_line.substring(22).equalsIgnoreCase("infinite"))
+									player_set.death_history_length = -1;
+								else {
+									sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
+									sender.sendMessage(ChatColor.RED + "The death history length has to be an integer or \"infinite.\"");
+									sender.sendMessage(ChatColor.RED + "I'm setting the death history length for " + parsing_player + " to \"infinite.\"");
+								}
 							}
 						}
-						if (!player_name.equals("") && !player_name.equals("1mAnExampl3")) {
-							Object[] player_data = new Object[default_settings.length];
-							if (use_group_settings && permissions != null) {
-								Object[] group_data = group_settings.get(permissions.getPrimaryGroup((World) null, player_name));
-								if (group_data != null)
-									for (int i = 0; i < group_data.length; i++)
-										player_data[i] = group_data[i];
-								else
-									for (int i = 0; i < default_settings.length; i++)
-										player_data[i] = default_settings[i];
-							}
-							boolean first_line = true;
-							already_progressed = true;
-							while (save_line != null) {
-								if (!first_line)
-									save_line = in.readLine();
-								if (save_line != null) {
-									// eliminate preceding spaces
-									while (save_line.startsWith(" "))
-										save_line = save_line.substring(1);
-									if (save_line.startsWith("Do you want " + player_name + " to be able to teleport to others without asking permission?"))
-										player_data[0] =
-												!getResponse(sender, save_line.substring(72 + player_name.length()), in.readLine(), "Right now, " + player_name
-														+ " can teleport freely.");
-									else if (save_line.startsWith("Do you want " + player_name
-											+ " to be able to teleport other players places without asking permission?"))
-										player_data[1] =
-												!getResponse(sender, save_line.substring(83 + player_name.length()), in.readLine(), "Right now, " + player_name
-														+ " can teleport others to them freely.");
-									else if (save_line.toLowerCase().startsWith("default warp message: "))
-										player_data[2] = save_line.substring(22);
-									else if (save_line.toLowerCase().startsWith("default no warp message: "))
-										player_data[3] = save_line.substring(25);
-									else if (save_line.toLowerCase().startsWith("max warps: ")) {
-										try {
-											player_data[4] = Integer.parseInt(save_line.substring(11));
-										} catch (NumberFormatException exception) {
-											player_data[4] = -1;
-											if (!save_line.substring(11).equalsIgnoreCase("infinite")) {
-												sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
-												sender.sendMessage(ChatColor.RED
-														+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
-												sender.sendMessage(ChatColor.RED + "I'm setting the max number of warps for " + player_name
-														+ " to \"infinite.\"");
-											}
-										}
-									} else if (save_line.toLowerCase().startsWith("cool down time: "))
-										player_data[5] = translateStringtoTimeInms(save_line.substring(16));
-									else if (save_line.toLowerCase().startsWith("warp history length: ")) {
-										try {
-											player_data[6] = Integer.parseInt(save_line.substring(21));
-										} catch (NumberFormatException exception) {
-											player_data[6] = -1;
-											if (!save_line.substring(21).equalsIgnoreCase("infinite")) {
-												sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
-												sender.sendMessage(ChatColor.RED + "The warp history length has to be an integer or \"infinite.\"");
-												sender.sendMessage(ChatColor.RED + "I'm setting the warp history length for " + player_name
-														+ " to \"infinite.\"");
-											}
-										}
-									} else if (save_line.toLowerCase().startsWith("death history length: ")) {
-										try {
-											player_data[7] = Integer.parseInt(save_line.substring(22));
-										} catch (NumberFormatException exception) {
-											player_data[7] = -1;
-											if (!save_line.substring(22).equalsIgnoreCase("infinite")) {
-												sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
-												sender.sendMessage(ChatColor.RED + "The death history length has to be an integer or \"infinite.\"");
-												sender.sendMessage(ChatColor.RED + "I'm setting the death history length for " + player_name
-														+ " to \"infinite.\"");
-											}
-										}
-									} else if (!first_line)
-										break;
-								} else
-									break;
-								if (first_line)
-									first_line = false;
-							}
-							per_player_settings.put(player_name, player_data);
-						}
+						settings.put(parsing_player, player_set);
 					}
 				}
-				if (!already_progressed)
-					save_line = in.readLine();
-				else
-					already_progressed = false;
+				save_line = in.readLine();
 			}
 			in.close();
-		} catch (FileNotFoundException exception) {
-			sender.sendMessage(ChatColor.DARK_RED + "The config.txt I created a few milliseconds ago doesn't exist. -_-");
-			exception.printStackTrace();
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got you a present. It's an IOEcxeption in config.txt.");
 			exception.printStackTrace();
@@ -2400,7 +2345,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private void loadTheTemporaryData() {
-		boolean failed = false;
 		// check the temporary file
 		File temp_file = new File(getDataFolder(), "temp.txt");
 		if (temp_file.exists())
@@ -2409,7 +2353,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				BufferedReader in = new BufferedReader(new FileReader(temp_file));
 				String save_line = in.readLine(), data_type = "", player = "";
 				while (save_line != null) {
-					if (save_line.startsWith("==== "))
+					if (save_line.equals(""))
+						continue;
+					else if (save_line.startsWith("==== "))
 						data_type = save_line.substring(5, save_line.length() - 5);
 					else if (save_line.startsWith("== "))
 						player = save_line.split(" ")[1];
@@ -2466,21 +2412,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					save_line = in.readLine();
 				}
 				in.close();
-			} catch (FileNotFoundException exception) {
-				console.sendMessage(ChatColor.DARK_RED + "The temp.txt I created a few milliseconds ago doesn't exist. -_-");
-				exception.printStackTrace();
 			} catch (IOException exception) {
-				console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save the temporary data.");
+				console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to load the temporary data.");
 				exception.printStackTrace();
-				failed = true;
+				return;
 			}
-		if (!failed)
-			temp_file.delete();
+		temp_file.delete();
 	}
 
 	// saving
 	private void saveTheWarps(CommandSender sender, boolean display_message) {
-		boolean failed = false;
 		// check the warps file
 		File warps_file = new File(getDataFolder(), "warps.txt");
 		if (!warps_file.exists()) {
@@ -2491,7 +2432,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			} catch (IOException exception) {
 				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create a warps.txt file! Oh nos!");
 				exception.printStackTrace();
-				failed = true;
+				return;
 			}
 		}
 		// save the warps
@@ -2507,9 +2448,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your warps.");
 			exception.printStackTrace();
-			failed = true;
+			return;
 		}
-		if (!failed && display_message) {
+		if (display_message) {
 			if (warps.size() > 1)
 				sender.sendMessage(ChatColor.GREEN + "Your " + warps.size() + " warps have been saved.");
 			else if (warps.size() == 1)
@@ -2528,22 +2469,15 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private void saveTheSwitches(CommandSender sender, boolean display_message) {
-		boolean failed = false;
 		// check the switches file
 		File switches_file = new File(getDataFolder(), "switches.txt");
-		if (!switches_file.exists()) {
-			getDataFolder().mkdir();
-			try {
-				sender.sendMessage(ChatColor.GREEN + "I couldn't find a switches.txt file. I'll make a new one.");
-				switches_file.createNewFile();
-			} catch (IOException exception) {
-				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create a switches.txt file! Oh nos!");
-				exception.printStackTrace();
-				failed = true;
-			}
-		}
 		// save the switches
 		try {
+			if (!switches_file.exists()) {
+				getDataFolder().mkdir();
+				sender.sendMessage(ChatColor.GREEN + "I couldn't find a switches.txt file. I'll make a new one.");
+				switches_file.createNewFile();
+			}
 			BufferedWriter out = new BufferedWriter(new FileWriter(switches_file));
 			for (UltraSwitch my_switch : switches) {
 				out.write(my_switch.getSaveLine());
@@ -2554,9 +2488,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your switches.");
 			exception.printStackTrace();
-			failed = true;
+			return;
 		}
-		if (!failed && display_message) {
+		if (display_message) {
 			if (switches.size() > 1)
 				sender.sendMessage(ChatColor.GREEN + "Your " + switches.size() + " switches have been saved.");
 			else if (switches.size() == 1)
@@ -2575,22 +2509,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private void saveTheConfig(CommandSender sender, boolean display_message) {
-		boolean failed = false;
-		// check the config file
 		File config_file = new File(getDataFolder(), "config.txt");
-		if (!config_file.exists()) {
-			getDataFolder().mkdir();
-			try {
-				sender.sendMessage(ChatColor.GREEN + "I couldn't find a config.txt file. I'll make a new one.");
-				config_file.createNewFile();
-			} catch (IOException exception) {
-				sender.sendMessage(ChatColor.DARK_RED + "I couldn't create a config.txt file! Oh nos!");
-				exception.printStackTrace();
-				failed = true;
-			}
-		}
 		// save the configurations
 		try {
+			if (!config_file.exists()) {
+				getDataFolder().mkdir();
+				sender.sendMessage(ChatColor.GREEN + "I couldn't find a config.txt file. I'll make a new one.");
+				config_file.createNewFile();
+			}
 			BufferedWriter out = new BufferedWriter(new FileWriter(config_file));
 			out.write("Remember to use /myUltraWarps save the config before you modify this file if autosave is off and use /myUltraWarps load the config when you're done.");
 			out.newLine();
@@ -2658,140 +2584,153 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			out.newLine();
 			out.write("global settings:");
 			out.newLine();
+			// get the server settings or use myUltraWarps defaults if for some reason the sevrer settings aren't available
+			if (settings.get("[server]") == null)
+				settings.put("[server]", new SettingsSet());
+			SettingsSet global_set = settings.get("[server]");
 			out.write("     Do you want players to be able to teleport to one another without asking permission? ");
 			out.newLine();
-			if (!(Boolean) default_settings[0])
+			if (!global_set.must_request_to)
 				out.write("        Right now, players can teleport to each other freely.");
 			else
 				out.write("        Right now, players normally have to request teleportation to the target player.");
 			out.newLine();
 			out.write("     Do you want players to be able to teleport other players places without asking permission? ");
 			out.newLine();
-			if (!(Boolean) default_settings[1])
+			if (!global_set.must_request_from)
 				out.write("        Right now, players can teleport each other to them freely.");
 			else
 				out.write("        Right now, players normally have to request that other players teleport to them.");
 			out.newLine();
-			out.write("     default warp message: " + default_settings[2]);
+			out.write("     default warp message: " + global_set.default_warp);
 			out.newLine();
-			out.write("     default no warp message: " + default_settings[3]);
+			out.write("     default no warp message: " + global_set.default_no_warp);
 			out.newLine();
-			if ((Integer) default_settings[4] != -1)
-				out.write("     max warps: " + default_settings[4]);
+			if (global_set.max_warps != -1)
+				out.write("     max warps: " + global_set.max_warps);
 			else
 				out.write("     max warps: infinite");
 			out.newLine();
-			out.write("     cool down time: " + translateTimeInmsToString((Integer) default_settings[5], false));
+			out.write("     cool down time: " + translateTimeInmsToString(global_set.cooldown, false));
 			out.newLine();
-			if ((Integer) default_settings[6] != -1)
-				out.write("     warp history length: " + default_settings[6]);
+			if (global_set.warp_history_length != -1)
+				out.write("     warp history length: " + global_set.warp_history_length);
 			else
 				out.write("     warp history length: infinite");
 			out.newLine();
-			if ((Integer) default_settings[7] != -1)
-				out.write("     death history length: " + default_settings[7]);
+			if (global_set.death_history_length != -1)
+				out.write("     death history length: " + global_set.death_history_length);
 			else
 				out.write("     death history length: infinite");
 			out.newLine();
 			out.newLine();
-			if (use_group_settings && permissions != null) {
+			if (use_group_settings && permissions != null && permissions.getGroups() != null && permissions.getGroups().length > 0) {
 				out.write("group settings:");
 				out.newLine();
-				if (permissions.getGroups() != null && permissions.getGroups().length > 0) {
-					for (int i = 0; i < permissions.getGroups().length; i++) {
-						if (!permissions.getGroups()[i].equals("default")) {
-							out.write("     " + permissions.getGroups()[i] + ":");
-							out.newLine();
-							Object[] data = group_settings.get(permissions.getGroups()[i]);
-							if (data == null)
-								data = default_settings;
-							out.write("          Do you want players in this group to be able to teleport to one another without asking permission? ");
-							out.newLine();
-							if (!(Boolean) data[0])
-								out.write("             Right now, players in this group can teleport to each other freely.");
-							else
-								out.write("             Right now, players in this group normally have to request teleportation to the target player.");
-							out.newLine();
-							out.write("          Do you want players in this group to be able to teleport other players places without asking permission? ");
-							out.newLine();
-							if (!(Boolean) data[1])
-								out.write("             Right now, players in this group can teleport each other to them freely.");
-							else
-								out.write("             Right now, players in this group normally have to request that other players teleport to them.");
-							out.newLine();
-							out.write("          default warp message: " + data[2]);
-							out.newLine();
-							out.write("          default no warp message: " + data[3]);
-							out.newLine();
-							if ((Integer) (data[4]) != -1)
-								out.write("          max warps: " + data[4]);
-							else
-								out.write("          max warps: infinite");
-							out.newLine();
-							out.write("          cool down time: " + translateTimeInmsToString((Integer) data[5], false));
-							out.newLine();
-							if ((Integer) (data[6]) != -1)
-								out.write("          warp history length: " + data[6]);
-							else
-								out.write("          warp history length: infinite");
-							out.newLine();
-							if ((Integer) (data[7]) != -1)
-								out.write("          death history length: " + data[7]);
-							else
-								out.write("          death history length: infinite");
-							out.newLine();
-						}
+				for (String group : permissions.getGroups()) {
+					if (!group.equals("default")) {
+						if (settings.get("[" + group + "]") == null)
+							// here we know the global settings have to exist because we added them earlier in this method, so make the group settings default
+							// to the global settings
+							settings.put("[" + group + "]", settings.get("[server]"));
+						SettingsSet group_set = settings.get("[" + group + "]");
+						out.write("     " + group + ":");
+						out.newLine();
+						out.write("          Do you want players in this group to be able to teleport to one another without asking permission? ");
+						out.newLine();
+						if (!group_set.must_request_to)
+							out.write("             Right now, players in this group can teleport to each other freely.");
+						else
+							out.write("             Right now, players in this group normally have to request teleportation to the target player.");
+						out.newLine();
+						out.write("          Do you want players in this group to be able to teleport other players places without asking permission? ");
+						out.newLine();
+						if (!group_set.must_request_from)
+							out.write("             Right now, players in this group can teleport each other to them freely.");
+						else
+							out.write("             Right now, players in this group normally have to request that other players teleport to them.");
+						out.newLine();
+						out.write("          default warp message: " + group_set.default_warp);
+						out.newLine();
+						out.write("          default no warp message: " + group_set.default_no_warp);
+						out.newLine();
+						if (group_set.max_warps != -1)
+							out.write("          max warps: " + group_set.max_warps);
+						else
+							out.write("          max warps: infinite");
+						out.newLine();
+						out.write("          cool down time: " + translateTimeInmsToString(group_set.cooldown, false));
+						out.newLine();
+						if (group_set.warp_history_length != -1)
+							out.write("          warp history length: " + group_set.warp_history_length);
+						else
+							out.write("          warp history length: infinite");
+						out.newLine();
+						if (group_set.death_history_length != -1)
+							out.write("          death history length: " + group_set.death_history_length);
+						else
+							out.write("          death history length: infinite");
+						out.newLine();
 					}
 				}
 				out.newLine();
-			} else if (use_group_settings && permissions == null) {
-				out.write("You need Vault to change group settings!");
+			} else {
+				if (!use_group_settings)
+					out.write("Group settings are off; otherwise, group settings stuff would go here!");
+				else if (use_group_settings && permissions == null)
+					out.write("You need Vault to change group settings!");
+				else
+					out.write("I would put your group settings stuff here, but even though you have Vault and a good permissions plugin, you have no group set up yet!");
 				out.newLine();
 				out.newLine();
 			}
+			// compile a list of all the individual settings in settings
+			HashMap<String, SettingsSet> player_sets = new HashMap<String, SettingsSet>();
+			for (String key : settings.keySet())
+				if (!key.startsWith("\\[") && !key.startsWith("\\]"))
+					player_sets.put(key, settings.get(key));
+			// if there were no individual settings, add an example individual setting
+			if (player_sets.size() == 0)
+				player_sets.put("1mAnExampl3", new SettingsSet());
+			// write!
 			out.write("individual settings:");
 			out.newLine();
-			if (per_player_settings.size() == 0)
-				per_player_settings.put("1mAnExampl3", default_settings);
-			else if (per_player_settings.containsKey("1mAnExampl3") && per_player_settings.size() > 1)
-				per_player_settings.remove("1mAnExampl3");
-			for (int i = 0; i < per_player_settings.size(); i++) {
-				String player_name = (String) per_player_settings.keySet().toArray()[i];
-				out.write("     " + player_name + ":");
+			for (String key : player_sets.keySet()) {
+				SettingsSet player_set = player_sets.get(key);
+				out.write("     " + key + ":");
 				out.newLine();
-				Object[] player_data = per_player_settings.get(player_name);
-				out.write("          Do you want " + player_name + " to be able to teleport to others without asking permission? ");
+				out.write("          Do you want " + key + " to be able to teleport to others without asking permission? ");
 				out.newLine();
-				if (!(Boolean) player_data[0])
-					out.write("             Right now, " + player_name + " can teleport freely.");
+				if (!player_set.must_request_to)
+					out.write("             Right now, " + key + " can teleport freely.");
 				else
-					out.write("             Right now, " + player_name + " normally has to request teleportation from the target player.");
+					out.write("             Right now, " + key + " normally has to request teleportation from the target player.");
 				out.newLine();
-				out.write("          Do you want " + player_name + " to be able to teleport other players places without asking permission?");
+				out.write("          Do you want " + key + " to be able to teleport other players places without asking permission?");
 				out.newLine();
-				if (!(Boolean) player_data[1])
-					out.write("             Right now, " + player_name + " can teleport others to them freely.");
+				if (!player_set.must_request_from)
+					out.write("             Right now, " + key + " can teleport others to them freely.");
 				else
-					out.write("             Right now, " + player_name + " normally has to request that other players teleport to them.");
+					out.write("             Right now, " + key + " normally has to request that other players teleport to them.");
 				out.newLine();
-				out.write("          default warp message: " + player_data[2]);
+				out.write("          default warp message: " + player_set.default_warp);
 				out.newLine();
-				out.write("          default no warp message: " + player_data[3]);
+				out.write("          default no warp message: " + player_set.default_no_warp);
 				out.newLine();
-				if ((Integer) player_data[4] != -1)
-					out.write("          max warps: " + player_data[4]);
+				if (player_set.max_warps != -1)
+					out.write("          max warps: " + player_set.max_warps);
 				else
 					out.write("          max warps: infinite");
 				out.newLine();
-				out.write("          cool down time: " + translateTimeInmsToString((Integer) player_data[5], false));
+				out.write("          cool down time: " + translateTimeInmsToString(player_set.cooldown, false));
 				out.newLine();
-				if ((Integer) player_data[6] != -1)
-					out.write("          warp history length: " + player_data[6]);
+				if (player_set.warp_history_length != -1)
+					out.write("          warp history length: " + player_set.warp_history_length);
 				else
 					out.write("          warp history length: infinite");
 				out.newLine();
-				if ((Integer) player_data[7] != -1)
-					out.write("          death history length: " + player_data[7]);
+				if (player_set.death_history_length != -1)
+					out.write("          death history length: " + player_set.death_history_length);
 				else
 					out.write("          death history length: infinite");
 				out.newLine();
@@ -2801,9 +2740,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} catch (IOException exception) {
 			sender.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your configurations.");
 			exception.printStackTrace();
-			failed = true;
+			return;
 		}
-		if (!failed && display_message) {
+		if (display_message) {
 			sender.sendMessage(ChatColor.GREEN + "Your configurations have been saved.");
 			if (sender instanceof Player)
 				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " saved the server's configurations to file.");
@@ -2811,7 +2750,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	private void saveTheTemporaryData() {
-		boolean failed = false;
 		// check the temporary file
 		File temp_file = new File(getDataFolder(), "temp.txt");
 		if (!temp_file.exists()) {
@@ -2821,71 +2759,70 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			} catch (IOException exception) {
 				console.sendMessage(ChatColor.DARK_RED + "I couldn't create a temp.txt file! Oh nos!");
 				exception.printStackTrace();
-				failed = true;
+				return;
 			}
 		}
-		if (!failed)
-			// save the warp and death histories
-			try {
-				BufferedWriter out = new BufferedWriter(new FileWriter(temp_file));
-				out.write("==== warp histories ====");
+		// save the warp and death histories
+		try {
+			BufferedWriter out = new BufferedWriter(new FileWriter(temp_file));
+			out.write("==== warp histories ====");
+			out.newLine();
+			for (String key : warp_histories.keySet()) {
+				out.write("== " + key + " ==");
 				out.newLine();
-				for (String key : warp_histories.keySet()) {
-					out.write("== " + key + " ==");
+				for (UltraWarp warp : warp_histories.get(key)) {
+					if (warp == null)
+						console.sendMessage(ChatColor.DARK_RED + "WTF! Warp is null!");
+					out.write(warp.getSaveLine());
 					out.newLine();
-					for (UltraWarp warp : warp_histories.get(key)) {
-						if (warp == null)
-							console.sendMessage(ChatColor.DARK_RED + "WTF! Warp is null!");
-						out.write(warp.getSaveLine());
-						out.newLine();
-					}
-					if (last_warp_indexes.get(key) != null) {
-						out.write("" + (Integer) last_warp_indexes.get(key));
-						out.newLine();
-					}
 				}
-				out.write("==== death histories ====");
-				out.newLine();
-				for (String key : death_histories.keySet()) {
-					out.write("== " + key + " ==");
+				if (last_warp_indexes.get(key) != null) {
+					out.write("" + (Integer) last_warp_indexes.get(key));
 					out.newLine();
-					for (Location death : death_histories.get(key)) {
-						out.write(death.getWorld().getName() + "," + death.getX() + "," + death.getY() + "," + death.getZ() + "," + death.getYaw() + ","
-								+ death.getPitch());
-						out.newLine();
-					}
-					if (last_warp_to_death_indexes.get(key) != null) {
-						out.write(last_warp_to_death_indexes.get(key));
-						out.newLine();
-					}
 				}
-				out.write("==== blocked players ====");
-				out.newLine();
-				for (String key : blocked_players.keySet())
-					if (blocked_players.get(key) != null && blocked_players.get(key).size() > 0) {
-						out.write("== " + key + " ==");
-						out.newLine();
-						for (String blocked_player : blocked_players.get(key)) {
-							out.write(blocked_player);
-							out.newLine();
-						}
-					}
-				out.write("==== cool down times ====");
-				out.newLine();
-				for (String key : cooling_down_players.keySet())
-					if (cooling_down_players.get(key) != null) {
-						out.write("== " + key + " ==");
-						out.newLine();
-						out.write("" + cooling_down_players.get(key));
-						out.newLine();
-					}
-				out.flush();
-				out.close();
-			} catch (IOException exception) {
-				console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your temporary data.");
-				exception.printStackTrace();
-				failed = true;
 			}
+			out.write("==== death histories ====");
+			out.newLine();
+			for (String key : death_histories.keySet()) {
+				out.write("== " + key + " ==");
+				out.newLine();
+				for (Location death : death_histories.get(key)) {
+					out.write(death.getWorld().getName() + "," + death.getX() + "," + death.getY() + "," + death.getZ() + "," + death.getYaw() + ","
+							+ death.getPitch());
+					out.newLine();
+				}
+				if (last_warp_to_death_indexes.get(key) != null) {
+					out.write(last_warp_to_death_indexes.get(key));
+					out.newLine();
+				}
+			}
+			out.write("==== blocked players ====");
+			out.newLine();
+			for (String key : blocked_players.keySet())
+				if (blocked_players.get(key) != null && blocked_players.get(key).size() > 0) {
+					out.write("== " + key + " ==");
+					out.newLine();
+					for (String blocked_player : blocked_players.get(key)) {
+						out.write(blocked_player);
+						out.newLine();
+					}
+				}
+			out.write("==== cool down times ====");
+			out.newLine();
+			for (String key : cooling_down_players.keySet())
+				if (cooling_down_players.get(key) != null) {
+					out.write("== " + key + " ==");
+					out.newLine();
+					out.write("" + cooling_down_players.get(key));
+					out.newLine();
+				}
+			out.flush();
+			out.close();
+		} catch (IOException exception) {
+			console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your temporary data.");
+			exception.printStackTrace();
+			return;
+		}
 	}
 
 	// plugin commands
@@ -3077,15 +3014,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Player player = (Player) sender;
 		// establish all the default values
 		boolean listed = false, restricted = true;
-		// find the user's global, group-specific, or individual settings
-		Object[] data = default_settings;
-		if (permissions != null && permissions.getPrimaryGroup(player) != null && group_settings.containsKey(permissions.getPrimaryGroup(player)))
-			data = group_settings.get(permissions.getPrimaryGroup(player));
-		if (per_player_settings.containsKey(player.getName()))
-			data = per_player_settings.get(player.getName());
+		SettingsSet set = getSettings(player.getName());
 		String owner = player.getName(), warp_message =
-				replaceAll(replaceAll((String) data[2], "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner), no_warp_message =
-				replaceAll(replaceAll((String) data[3], "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner);
+				replaceAll(replaceAll((String) set.default_warp, "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner), no_warp_message =
+				replaceAll(replaceAll((String) set.default_no_warp, "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner);
 		String[] listed_users = null;
 		boolean player_is_owner = true;
 		parsing_warp_message = false;
@@ -3137,18 +3069,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 		if (listed_users == null)
 			listed_users = new String[0];
-		// see if the user has reached the maximum number of warps they're
-		// allowed to have
+		// see if the user has reached the maximum number of warps they're allowed to have
 		boolean maxed_out = false;
-		int specific_max_warps = (Integer) data[4];
-		if (specific_max_warps != -1) {
+		if (set.max_warps != -1) {
 			int number_of_warps = 0;
-			for (UltraWarp warp : warps) {
+			for (UltraWarp warp : warps)
 				if (warp.getOwner().equalsIgnoreCase(player.getName()))
 					number_of_warps++;
+			if (number_of_warps >= set.max_warps) {
+				player.sendMessage(ChatColor.RED + "Sorry, but you're only allowed to create " + (Integer) set.max_warps
+						+ " warps and you've already reached your limit.");
+				return;
 			}
-			if (number_of_warps >= specific_max_warps)
-				maxed_out = true;
 		}
 		if ((!maxed_out || player.hasPermission("myultrawarps.admin"))
 				&& !parameters[extra_param].equalsIgnoreCase("info")
@@ -3214,9 +3146,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			} else
 				player.sendMessage(ChatColor.RED + owner + " already has a warp called \"" + parameters[extra_param]
 						+ "\" and you're not allowed to overwrite it.");
-		} else if (maxed_out)
-			player.sendMessage(ChatColor.RED + "Sorry, but you're only allowed to create " + (Integer) data[4]
-					+ " warps and you've already reached your limit.");
+		}
 	}
 
 	private void changeWarp(int extra_param, CommandSender sender) {
@@ -3691,7 +3621,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		if ((player != null && config_target.equals(player.getName())) || player == null || player.hasPermission("myultrawarps.admin")) {
 			if (config_target.equals("server")) {
 				if (change_warp_message) {
-					default_settings[2] = new_message;
+					SettingsSet set = settings.get("[server]");
+					set.default_warp = new_message;
+					settings.put("[server]", set);
 					if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
 								+ ChatColor.GREEN + "\"");
@@ -3699,7 +3631,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
 								+ ChatColor.GREEN + ".\"");
 				} else {
-					default_settings[3] = new_message;
+					SettingsSet set = settings.get("[server]");
+					set.default_no_warp = new_message;
+					settings.put("[server]", set);
 					if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 						sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
 								+ ChatColor.GREEN + "\"");
@@ -3708,6 +3642,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ ChatColor.GREEN + ".\"");
 				}
 			} else if (target_is_group) {
+				// simultaneously autocomplete the group name and see if it even exists at all
 				boolean group_exists = false;
 				for (String group : permissions.getGroups())
 					if (group.toLowerCase().startsWith(config_target.toLowerCase())) {
@@ -3715,14 +3650,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						group_exists = true;
 					}
 				if (group_exists) {
-					Object[] data = group_settings.get(config_target);
-					if (data == null) {
-						data = new Object[default_settings.length];
-						for (int i = 0; i < default_settings.length; i++)
-							data[i] = default_settings[i];
-					}
+					SettingsSet set = settings.get("[" + config_target + "]");
+					if (set == null)
+						set = settings.get("[server]");
 					if (change_warp_message) {
-						data[1] = new_message;
+						set.default_warp = new_message;
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \""
 									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + "\"");
@@ -3730,7 +3662,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \""
 									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + ".\"");
 					} else {
-						data[2] = new_message;
+						set.default_no_warp = new_message;
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + " group to \""
 									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + "\"");
@@ -3738,27 +3670,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + "mgroup to \""
 									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + ".\"");
 					}
-					group_settings.put(config_target, data);
+					settings.put("[" + config_target + "]", set);
 				} else
 					sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a group called \"" + config_target + ".\"");
 			} else {
-				Object[] data = per_player_settings.get(config_target);
-				if (data == null) {
-					String group = null;
-					if (online_target_player != null)
-						group = permissions.getPrimaryGroup(online_target_player);
-					else
-						group = permissions.getPrimaryGroup((World) null, config_target);
-					if (group != null)
-						data = group_settings.get(group);
-				}
-				if (data == null) {
-					data = new Object[default_settings.length];
-					for (int i = 0; i < default_settings.length; i++)
-						data[i] = default_settings[i];
-				}
+				SettingsSet set = getSettings(config_target);
 				if (change_warp_message) {
-					data[2] = new_message;
+					set.default_warp = new_message;
 					if (player != null && player.getName().equals(config_target))
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 							sender.sendMessage(ChatColor.GREEN + "You changed your default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
@@ -3773,7 +3691,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default warp message to \"" + ChatColor.WHITE
 								+ colorCode(new_message) + ChatColor.GREEN + ".\"");
 				} else {
-					data[3] = new_message;
+					set.default_no_warp = new_message;
 					if (player != null && player.getName().equals(config_target))
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
 							sender.sendMessage(ChatColor.GREEN + "You changed your default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
@@ -3788,9 +3706,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default no warp message to \"" + ChatColor.WHITE
 								+ colorCode(new_message) + ChatColor.GREEN + ".\"");
 				}
-				per_player_settings.put(config_target, data);
+				settings.put(config_target, set);
 			}
-			saveTheConfig(sender, false);
+			if (autosave_config)
+				saveTheConfig(sender, false);
 		} else
 			player.sendMessage(ChatColor.RED + "Sorry, but you're only allowed to change your own default messages.");
 	}
@@ -3841,19 +3760,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want me to change the max warps to!");
 		if (new_max_warps != -2) {
 			if (config_target.equals("server")) {
-				default_settings[4] = new_max_warps;
-				for (int i = 0; i < group_settings.size(); i++) {
-					String key = (String) group_settings.keySet().toArray()[i];
-					Object[] data = group_settings.get(key);
-					data[4] = new_max_warps;
-					group_settings.put(key, data);
-				}
-				for (int i = 0; i < per_player_settings.size(); i++) {
-					String key = (String) per_player_settings.keySet().toArray()[i];
-					Object[] data = per_player_settings.get(key);
-					data[4] = new_max_warps;
-					per_player_settings.put(key, data);
-				}
+				SettingsSet set = settings.get("[server]");
+				set.max_warps = new_max_warps;
+				settings.put("[server]", set);
 				if (new_max_warps != -1)
 					sender.sendMessage(ChatColor.GREEN + "You changed the default maximum number of warps to " + new_max_warps + ".");
 				else
@@ -3866,47 +3775,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						group_exists = true;
 					}
 				if (group_exists) {
-					Object[] data = group_settings.get(config_target);
-					if (data == null) {
-						data = new Object[default_settings.length];
-						for (int i = 0; i < default_settings.length; i++)
-							data[i] = default_settings[i];
-					}
-					data[4] = new_max_warps;
+					SettingsSet set = settings.get("[" + config_target + "]");
+					set.max_warps = new_max_warps;
 					if (new_max_warps != -1)
 						sender.sendMessage(ChatColor.GREEN + "You changed the default maximum number of warps for the " + config_target + " group to "
 								+ new_max_warps + ".");
 					else
 						sender.sendMessage(ChatColor.GREEN + "Everyone in the " + config_target + " group can now make as many warps as they want.");
-					group_settings.put(config_target, data);
+					settings.put("[" + config_target + "]", set);
 				} else
 					sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a group called \"" + config_target + ".\"");
 			} else {
-				Object[] data = per_player_settings.get(config_target);
-				if (data == null) {
-					String group = null;
-					if (online_target_player != null)
-						group = permissions.getPrimaryGroup(online_target_player);
-					else
-						group = permissions.getPrimaryGroup((World) null, config_target);
-					if (group != null)
-						data = group_settings.get(group);
-				}
-				if (data == null) {
-					data = new Object[default_settings.length];
-					for (int i = 0; i < default_settings.length; i++)
-						data[i] = default_settings[i];
-				}
-				data[4] = new_max_warps;
+				SettingsSet set = getSettings(config_target);
+				set.max_warps = new_max_warps;
 				if (player != null && player.getName().equals(config_target))
-					if (new_max_warps != -1) {
-						sender.sendMessage(ChatColor.GREEN + "You can now make a maximum of " + new_max_warps + " warps.");
-						sender.sendMessage(ChatColor.GREEN + "...but, uh...you're a myUltraWarps admin, so you can still make as many warps as you want....");
-					} else {
-						sender.sendMessage(ChatColor.GREEN + "You can now make as many warps as you want.");
+					if (new_max_warps != -1)
+						sender.sendMessage(ChatColor.GREEN + "You can now make a maximum of " + new_max_warps
+								+ " warps\n...but, uh...you're a myUltraWarps admin, so you can still make as many warps as you want....");
+					else
 						sender.sendMessage(ChatColor.GREEN
-								+ "...but, uh...you're a myUltraWarps admin, so you could already make as many warps as you want....");
-					}
+								+ "You can now make as many warps as you want\n...but, uh...you're a myUltraWarps admin, so you could already make as many warps as you want....");
 				else if (new_max_warps != -1) {
 					sender.sendMessage(ChatColor.GREEN + config_target + " can now make a maximum of " + new_max_warps + " warps.");
 					if ((online_target_player != null && online_target_player.hasPermission("myultrawarps.admin"))
@@ -3920,9 +3808,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						sender.sendMessage(ChatColor.GREEN + "...but, uh..." + config_target
 								+ " is a myUltraWarps admin, so they could already make as many warps as they want....");
 				}
-				per_player_settings.put(config_target, data);
+				settings.put(config_target, set);
 			}
-			saveTheConfig(sender, false);
+			if (autosave_config)
+				saveTheConfig(sender, false);
 		}
 	}
 
@@ -4227,11 +4116,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	private void from(CommandSender sender) {
 		Player player = (Player) sender;
-		Object[] data = default_settings;
-		if (permissions != null && permissions.getPrimaryGroup(player) != null && group_settings.containsKey(permissions.getPrimaryGroup(player)))
-			data = group_settings.get(permissions.getPrimaryGroup(player));
-		if (per_player_settings.containsKey(player.getName()))
-			data = per_player_settings.get(player.getName());
 		// find the target player
 		Player target_player = null;
 		for (Player my_player : server.getOnlinePlayers())
@@ -4241,10 +4125,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		// admins are supreme)
 		if (target_player != null
 				&& !target_player.equals(player)
-				&& (target_player.hasPermission("myultrawarps.to") || target_player.hasPermission("myultrawarps.user")
+				&& (target_player.hasPermission("myultrawarps.from.accept") || target_player.hasPermission("myultrawarps.user")
 						|| target_player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.admin"))
 				&& (blocked_players.get(target_player.getName()) == null || !blocked_players.get(target_player.getName()).contains(player.getName()))) {
-			if (!(Boolean) data[1] || player.hasPermission("myultrawarps.admin")
+			if (!getSettings(player.getName()).must_request_from || player.hasPermission("myultrawarps.admin")
 					|| (to_teleport_requests.get(player.getName()) != null && to_teleport_requests.get(player.getName()).contains(target_player.getName()))) {
 				// remove any to teleportation requests from the target player
 				ArrayList<String> requesting_players = to_teleport_requests.get(player.getName());
@@ -4925,11 +4809,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	private void to(CommandSender sender) {
 		Player player = (Player) sender;
-		Object[] data = default_settings;
-		if (permissions != null && permissions.getPrimaryGroup(player) != null && group_settings.containsKey(permissions.getPrimaryGroup(player)))
-			data = group_settings.get(permissions.getPrimaryGroup(player));
-		if (per_player_settings.containsKey(player.getName()))
-			data = per_player_settings.get(player.getName());
 		// find the target player
 		Player target_player = null;
 		for (Player my_player : server.getOnlinePlayers())
@@ -4938,7 +4817,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		// teleport the player to him/her or say it can't be done
 		if (target_player != null
 				&& (blocked_players.get(target_player.getName()) == null || !blocked_players.get(target_player.getName()).contains(player.getName()))) {
-			if (!(Boolean) data[0] || player.hasPermission("myultrawarps.admin")
+			if (!getSettings(player.getName()).must_request_to || player.hasPermission("myultrawarps.admin")
 					|| (from_teleport_requests.get(player.getName()) != null && from_teleport_requests.get(player.getName()).contains(target_player.getName()))) {
 				// remove any to teleportation requests from the target player
 				ArrayList<String> requesting_players = from_teleport_requests.get(player.getName());
