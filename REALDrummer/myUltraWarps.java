@@ -47,6 +47,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.World;
 
+/**
+ * This is the main class for myUltraWarps.
+ * 
+ * @author REALDrummer
+ */
 public class myUltraWarps extends JavaPlugin implements Listener {
 	public static Server server;
 	public static ConsoleCommandSender console;
@@ -109,6 +114,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	// DONE: made changing max warps with a command only affect the target and not everything else below it that it applies to
 
 	// plugin enable/disable and the command operator
+	/**
+	 * This method is called when myUltraWarps is enabled.
+	 */
 	public void onEnable() {
 		server = getServer();
 		console = server.getConsoleSender();
@@ -371,6 +379,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				player.sendMessage(ChatColor.GREEN + enable_message);
 	}
 
+	/**
+	 * This method is called when myUltraWarps is disabled.
+	 */
 	public void onDisable() {
 		// forcibly enable the permissions plugin
 		if (permissions != null) {
@@ -396,6 +407,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 	}
 
+	/**
+	 * This method is called if a command is used that myUltraWarps has regiestered in its plugin.yml.
+	 */
 	public boolean onCommand(CommandSender sender, Command cmd, String command, String[] my_parameters) {
 		parameters = my_parameters;
 		boolean success = false;
@@ -1010,6 +1024,21 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	}
 
 	// intra-command methods
+	/**
+	 * The method reads the parameters from a command ("parameters") and finds the warp designated by the given command. It has the ability to prioritize its
+	 * searches based on the permissions of the command sender ("sender"), the type of warp (i.e. open, advertised, secret, or private), the people listed on
+	 * the warp, how closely the name matches the parameters given, etc. If an owner of the warp is designated by terminating a parameter with an "'s", it will
+	 * use that owner as a parameter in its search and check the next command parameter for the name of the warp; if no owner name is given, it will find all of
+	 * the warps with matching names, then give warps owned by "sender" the highest priority, followed by listed warps, warps that the sender has the ability to
+	 * use (because they are unrestricted warps or because they are restricted warps and the player's name is on the list), and finally warps that the player is
+	 * not allowed to use without admin-type permissions.
+	 * 
+	 * @param extra_param
+	 *            is used to designate which parameter in the list of parameters this method should start searching at.
+	 * @param sender
+	 *            is the CommandSender (which can be a Player or "console") that executed the command.
+	 * @return the warp designated by the parameters given
+	 */
 	private UltraWarp locateWarp(int extra_param, CommandSender sender) {
 		// establish some objects
 		index = -1;
@@ -1088,6 +1117,25 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return winner_winner;
 	}
 
+	/**
+	 * This method actiavtes any color codes in a given String and returns the message with color codes eliminated from the text and colors added to the text.
+	 * This method is necessary because it does two (2) things that CraftBukkit's ChatColor.translateAlternateColorCodes() method cannot. 1) It rearranges color
+	 * codes in the text to ensure that every one is used. With CraftBukkit's standard methods, any formatting color codes (e.g. &k for magic or &l for bold)
+	 * that PRECEDE color color codes (e.g. &a for light green or &4 for dark red) are automatically cancelled, but if the formatting color codes comes AFTER
+	 * the color color code, the following text will be colored AND formatted. This method can simply switch the places of the formatting and color color codes
+	 * in these instances to ensure that both are used (e.g. "&k&4", which normally results in dark red text, becomes "&4&k", which results in dark red magic
+	 * text). 2) It allows the use of anti-color codes, an invention of mine. Anti-color codes use percent symbols (%) in place of ampersands (&) and work in
+	 * the opposite way of normal color codes. They allow the user to cancel one coloring or formatting in text without having to rewrite all of the previous
+	 * color codes. For example, normally to change from a dark red, magic, bold text ("&4&k&l") to a dark red magic text ("&4&k"), you would have to use
+	 * "&4&k"; with this feature, however, you can simply use "%l" to cancel the bold formatting. This feature is essential for the AutoCorrect abilities; for
+	 * example, the profanity filter must have the ability to execute a magic color code, but then cancel it without losing any colors designated by the sender
+	 * earlier in the message. Without this ability, the white color code ("&f") could perhaps be used to cancel the magic formatting, but in a red message
+	 * containing a profanity, that would result in the rest of the message after the covered up profanity being white.
+	 * 
+	 * @param text
+	 *            is the string that must be color coded.
+	 * @return the String colored according to the color codes given
+	 */
 	public static String colorCode(String text) {
 		text = "&f" + text;
 		// put color codes in the right order if they're next to each other
@@ -1101,7 +1149,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				current_color_code = current_color_code + text.substring(i, i + 2);
 			else if (isColorCode(text.substring(i, i + 2), null, false)) {
 				while (text.length() > i + 2 && isColorCode(text.substring(i, i + 2), null, false)) {
-					current_color_code = replaceAll(current_color_code, "&" + text.substring(i + 1, i + 2), "");
+					current_color_code = current_color_code.replaceAll("&" + text.substring(i + 1, i + 2), "");
 					if (current_color_code.equals(""))
 						current_color_code = "&f";
 					text = text.substring(0, i) + text.substring(i + 2);
@@ -1113,7 +1161,22 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return colored_text;
 	}
 
-	private static Boolean isColorCode(String text, Boolean true_non_formatting_null_either, Boolean true_non_anti_null_either) {
+	/**
+	 * This method can determine whether or not a String is a color code or not and what type or color code it is (formatting vs. color color codes and/or
+	 * normal vs. anti-color codes).
+	 * 
+	 * @param text
+	 *            is the two-character String that this method analyzes to see whether or not it is a color code.
+	 * @param true_non_formatting_null_either
+	 *            is a Boolean that can have three values. "true" means that the color code must be non-formatting, e.g. "&a" (light green) or "&4" (dark red).
+	 *            "false" means that the color code must be formatting, e.g. "&k" for magic or "&l" for bold. "null" means that it can be either a formatting or
+	 *            non-formatting color code to return true.
+	 * @param true_non_anti_null_either
+	 *            works similarly to true_non_formatting_null_either, but for anti-color codes vs. normal color codes. "true" means that the color code must NOT
+	 *            be an anti-color code.
+	 * @return true if the String is a color code and the other standards set by the Boolean parameters are met; false otherwise
+	 */
+	private static boolean isColorCode(String text, Boolean true_non_formatting_null_either, Boolean true_non_anti_null_either) {
 		if (!text.startsWith("&") && !text.startsWith("%"))
 			return false;
 		if (true_non_anti_null_either != null)
@@ -1132,6 +1195,25 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return false;
 	}
 
+	/**
+	 * This method is used to interpret the answers to questions 1) in the chat and 2) in the config.txt file for myUltraWarps.
+	 * 
+	 * @param sender
+	 *            is the Player that sent the response message or "console" for config.txt questions.
+	 * @param unformatted_response
+	 *            is the raw String message that will be formatted in this message to be all lower case with no punctuation.
+	 * @param current_status_line
+	 *            is for use with the config.txt questions only; it allows this method to default to the current status of a configuration if no answer is given
+	 *            to a config.txt question.
+	 * @param current_status_is_true_message
+	 *            is for use with the config.txt questions only; it allows this method to compare "current_status_line" to this message to determine whether or
+	 *            not the current status of the configuration handled by this config question is "true" or "false".
+	 * @return for chat responses: true if the response matches one of the words or phrases in the "yeses" array, false if the response matches one of the words
+	 *         or phrases in the "nos" array, or null if the message did not seem to answer the question. for config question responses: true if the answer to
+	 *         the question matches one of the words or phrases in the "yeses" array, false if the answer to the question matches one of the words or phrases in
+	 *         the "nos" array. If there is no answer to the question or the answer does not match a "yes" or a "no" response, it will return true if
+	 *         "current_status_line" matches "current_status_is_true_message" or false if it does not.
+	 */
 	private static Boolean getResponse(CommandSender sender, String unformatted_response, String current_status_line, String current_status_is_true_message) {
 		boolean said_yes = false, said_no = false;
 		String formatted_response = unformatted_response;
@@ -1170,6 +1252,29 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 	}
 
+	/**
+	 * This method is used when reading through the parameters of /change or /create commands. These commands can include warp or no warp messages, which often
+	 * have to take up more than one parameter in order to contain spaces. This method is used to stop reading the warp or no warp messages in the parameters
+	 * when needed, i.e. at the end of the command parameters or when it reaches another parameter such as "giveto:[player]".
+	 * 
+	 * @param warp_message
+	 *            is the warp message that was being read in the command; it will be null if the warp message was not given in the current part of the command.
+	 * @param no_warp_message
+	 *            is the no warp message that was being read in the command; it will be null if the no warp message was not given in the current part of the
+	 *            command.
+	 * @param true_warp_name
+	 *            is the name of the warp which this message is associated with.
+	 * @param true_owner_name
+	 *            is the owner of the warp which this message is associated with.
+	 * @param player_is_owner
+	 *            designates wither or not the person executing the command is the owner of the warp or not.
+	 * @param sender
+	 *            is the Player or "console" that is executing the command to change the warp or no warp message.
+	 * @param result_message
+	 *            is the message that will be displayed at the end of /change to tell the command sender which warp properties they did and did not successfully
+	 *            change.
+	 * @return the result_message so that /change can display it to the command sender at the end of the changeWarp() method.
+	 */
 	private String stopParsingMessages(String warp_message, String no_warp_message, String true_warp_name, String true_owner_name, boolean player_is_owner,
 			CommandSender sender, String result_message) {
 		if (parsing_warp_message) {
@@ -1229,16 +1334,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return result_message;
 	}
 
-	private static String replaceAll(String to_return, String to_change, String to_change_to) {
-		int index = 0;
-		while (to_return.contains(to_change) && to_return.length() >= index + to_change.length()) {
-			if (to_return.substring(index, index + to_change.length()).equals(to_change))
-				to_return = to_return.substring(0, index) + to_change_to + to_return.substring(index + to_change.length());
-			index++;
-		}
-		return to_return;
-	}
-
+	/**
+	 * This is a simple auto-complete method that can take the first few letters of a player's name and return the full name of the player. It prioritizes in
+	 * two ways: 1) it gives online players priority over offline players and 2) it gives shorter names priority over longer usernames because if a player tries
+	 * to designate a player and this plugin returns a different name than the user meant that starts with the same letters, the user can add more letters to
+	 * get the longer username instead. If these priorities were reversed, then there would be no way to specify a user whose username is the first part of
+	 * another username, e.g. "Jeb" and "Jebs_bro". This matching is NOT case-sensitive.
+	 * 
+	 * @param name
+	 *            is the String that represents the first few letters of a username that needs to be auto-completed
+	 * @return the completed username that begins with "name" (NOT case-sensitive)
+	 */
 	private static String getFullName(String name) {
 		String full_name = null;
 		for (Player possible_owner : server.getOnlinePlayers())
@@ -1253,6 +1359,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return full_name;
 	}
 
+	/**
+	 * This method gets the settings for a player that were configured in the config.txt. It gives more specific settings priority over less specific settings.
+	 * In other words, if "player" has individual settings, it will return those; if "player" has no individual settings, it will return the settings for
+	 * "player"'s permissions group (assuming "player" is in a permission group, group settings are enabled, and the server has Vault); if "player" has no group
+	 * or individual settings, it will return the global settings.
+	 * 
+	 * @param player
+	 *            is the name of the user (or permissions-based group or "[server]") that we need the settings for.
+	 * @return the most specific SettingsSet that applies to "player"
+	 */
 	private SettingsSet getSettings(String player) {
 		// prioritize by searching first for individual settings, then group settings if you can't find individual settings, the server-wide (global) settings
 		// if you can't find group settings
@@ -1268,13 +1384,24 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			return new SettingsSet();
 	}
 
+	/**
+	 * This method can translate a String of time terms and values to a single int time in milliseconds (ms). It can interpret a variety of formats from
+	 * "2d 3s 4m" to "2 days, 4 minutes, and 3 seconds" to "2.375 minutes + 5.369s & 3.29days". Punctuation is irrelevant. Spelling is irrelevant as long as the
+	 * time terms begin with the correct letter. Order of values is irrelevant. (Days can come before seconds, after seconds, or both.) Repetition of values is
+	 * irrelevant; all terms are simply converted to ms and summed. Integers and decimal numbers are equally readable. The highest time value it can read is
+	 * days; it cannot read years or months (to avoid the complications of months' different numbers of days and leap years).
+	 * 
+	 * @param written
+	 *            is the String to be translated into a time in milliseconds (ms).
+	 * @return the time given by the String "written" translated into milliseconds (ms).
+	 */
 	public static int translateStringtoTimeInms(String written) {
 		int time = 0;
 		String[] temp = written.split(" ");
 		ArrayList<String> words = new ArrayList<String>();
 		for (String word : temp)
 			if (!word.equalsIgnoreCase("and") && !word.equalsIgnoreCase("&"))
-				words.add(replaceAll(word.toLowerCase(), ",", ""));
+				words.add(word.toLowerCase().replaceAll(",", ""));
 		while (words.size() > 0) {
 			// for formats like "2 days 3 minutes 5.57 seconds" or "3 d 5 m 12 s"
 			try {
@@ -1328,6 +1455,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return time;
 	}
 
+	/**
+	 * This method is the counterpart to the translateStringToTimeInms() method. It can construct a String to describe an amount of time in ms in an elegant
+	 * format that is readable by the aforementioned counterpart method as well as human readers.
+	 * 
+	 * @param time
+	 *            is the time in milliseconds (ms) that is to be translated into a readable phrase.
+	 * @param round_seconds
+	 *            determines whether or not the number of seconds should be rounded to make the phrase more elegant and readable to humans. This parameter is
+	 *            normally false if this method is used to save data for the plugin because we want to be as specific as possible; however, for messages sent to
+	 *            players in game, dropping excess decimal places makes the phrase more friendly and readable.
+	 * @return a String describing "time"
+	 */
 	public static String translateTimeInmsToString(long time, boolean round_seconds) {
 		// get the values (e.g. "2 days" or "55.7 seconds")
 		ArrayList<String> values = new ArrayList<String>();
@@ -1371,6 +1510,25 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			return null;
 	}
 
+	/**
+	 * This method checks that the player has the ability and permission to teleport and teleports them if they do. See the parameters for more information.
+	 * 
+	 * @param player
+	 *            is the Player being teleported.
+	 * @param from
+	 *            is the place where "player" began. If from is not null, it will be used to record this teleportation event in "player"'s warp history.
+	 * @param to
+	 *            is the place "player" is being teleported to. If from is not null, it will be used to record this teleportation event in "player"'s warp
+	 *            history in addition to being the target of "player"'s teleportation.
+	 * @param send_warp_message
+	 *            designates whether or not this method should send "player" the warp message designated by the "to" UltraWarp. The value of this parameter is
+	 *            false when the message to be sent to "player" is different from the message to be saved in "player"'s warp history.
+	 * @param non_teleporting_player
+	 *            is used when there is a second Player or "console" involved in the teleportation either as the executor of the teleportation command or the
+	 *            target of the teleportation. This is used to allow Players with admin permissions or the console to teleport players without interference from
+	 *            this plugin because "player"'s warping cool down time is not up or for any other reasons.
+	 * @return true if the teleportation was successful and false if "player" does not have permission or must wait for their cooldown time to expire
+	 */
 	public boolean teleport(Player player, UltraWarp from, UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
 		SettingsSet set = getSettings(player.getName());
 		// stop here if the cooldown timer has not finished
@@ -1390,7 +1548,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		to.getLocation().getChunk().load();
 		player.teleport(to.getLocation());
 		if (send_warp_message && !to.getWarpMessage().equals(""))
-			player.sendMessage(colorCode(replaceAll(to.getWarpMessage(), "[player]", player.getName())));
+			player.sendMessage(colorCode(to.getWarpMessage().replaceAll("\\[player\\]", player.getName())));
 		if (from != null) {
 			// save the player's location before warping
 			ArrayList<UltraWarp> replacement = warp_histories.get(player.getName());
@@ -1429,7 +1587,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	@EventHandler
 	public void informPlayersOfStuffAndRemoveTheirCoolingDownStatusIfNecessary(PlayerJoinEvent event) {
 		if (!event.getPlayer().hasPlayedBefore())
-			event.getPlayer().sendMessage(colorCode(replaceAll(spawn_messages_by_world.get(event.getPlayer().getWorld()), "[player]", event.getPlayer().getName())));
+			event.getPlayer().sendMessage(colorCode(spawn_messages_by_world.get(event.getPlayer().getWorld()).replaceAll("\\[player\\]", event.getPlayer().getName())));
 		else {
 			// tell admins that myUltraWarps has updated
 			File new_myUltraWarps = new File(this.getDataFolder(), "myUltraWarps.jar");
@@ -1502,7 +1660,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name
 									+ ".", "", null, event.getPlayer().getLocation()), warp_target, true, null);
 						} else
-							event.getPlayer().sendMessage(colorCode(replaceAll(warp_target.getNoWarpMessage(), "[player]", event.getPlayer().getName())));
+							event.getPlayer().sendMessage(colorCode(warp_target.getNoWarpMessage().replaceAll("\\[player\\]", event.getPlayer().getName())));
 					}
 				}
 			}
@@ -2819,7 +2977,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				teleport(player, null, last_warp, true, null);
 				last_warp_indexes.put(player.getName(), last_warp_index - amount);
 			} else
-				player.sendMessage(colorCode(replaceAll(last_warp.getNoWarpMessage(), "[player]", player.getName())));
+				player.sendMessage(colorCode(last_warp.getNoWarpMessage().replaceAll("\\[player\\]", player.getName())));
 		}
 	}
 
@@ -2909,8 +3067,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		boolean listed = false, restricted = true;
 		SettingsSet set = getSettings(player.getName());
 		String owner = player.getName(), warp_message =
-				replaceAll(replaceAll((String) set.default_warp, "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner), no_warp_message =
-				replaceAll(replaceAll((String) set.default_no_warp, "[warp]", replaceAll(parameters[extra_param], "_", " ")), "[owner]", owner);
+				(String) set.default_warp.replaceAll("\\[warp\\]", parameters[extra_param].replaceAll("_", " ")).replaceAll("\\[owner\\]", owner), no_warp_message =
+				(String) set.default_no_warp.replaceAll("\\[warp\\]", parameters[extra_param].replaceAll("_", " ")).replaceAll("\\[owner\\]", owner);
 		String[] listed_users = null;
 		boolean player_is_owner = true;
 		parsing_warp_message = false;
@@ -2944,9 +3102,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				player_is_owner = player != null && player.getName().equals(owner);
 				// update the warp and no warp messages
 				if (warp_message.contains(temp_old_owner))
-					warp_message = replaceAll(warp_message, temp_old_owner, owner);
+					warp_message = warp_message.replaceAll(temp_old_owner, owner);
 				if (no_warp_message.contains(temp_old_owner))
-					no_warp_message = replaceAll(no_warp_message, temp_old_owner, owner);
+					no_warp_message = no_warp_message.replaceAll(temp_old_owner, owner);
 				stopParsingMessages(warp_message, no_warp_message, parameters[extra_param], owner, player_is_owner, sender, "");
 			} else if (parameters[j].toLowerCase().startsWith("list:")) {
 				stopParsingMessages(warp_message, no_warp_message, parameters[extra_param], owner, player_is_owner, sender, "");
@@ -3112,13 +3270,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							result_message = result_message + ChatColor.GREEN + owner + "'s \"" + old_name + "\" has been renamed \"" + name + ".\"";
 						// update the warp and no warp messages
 						boolean updated_warp_message = false, updated_no_warp_message = false;
-						String temp_old_message_name = replaceAll(temp_old_name, "_", " "), message_name = replaceAll(name, "_", " ");
+						String temp_old_message_name = temp_old_name.replaceAll("_", " "), message_name = name.replaceAll("_", " ");
 						if (warp_message.contains(temp_old_message_name)) {
-							warp_message = replaceAll(warp_message, temp_old_message_name, message_name);
+							warp_message = warp_message.replaceAll(temp_old_message_name, message_name);
 							updated_warp_message = true;
 						}
 						if (no_warp_message.contains(temp_old_message_name)) {
-							no_warp_message = replaceAll(no_warp_message, temp_old_message_name, message_name);
+							no_warp_message = no_warp_message.replaceAll(temp_old_message_name, message_name);
 							updated_no_warp_message = true;
 						}
 						if (!result_message.equals(""))
@@ -3159,11 +3317,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					// update the warp and no warp messages
 					boolean updated_warp_message = false, updated_no_warp_message = false;
 					if (warp_message.contains(temp_old_owner)) {
-						warp_message = replaceAll(warp_message, temp_old_owner, owner);
+						warp_message = warp_message.replaceAll(temp_old_owner, owner);
 						updated_warp_message = true;
 					}
 					if (no_warp_message.contains(temp_old_owner)) {
-						no_warp_message = replaceAll(no_warp_message, temp_old_owner, owner);
+						no_warp_message = no_warp_message.replaceAll(temp_old_owner, owner);
 						updated_no_warp_message = true;
 					}
 					if (!result_message.equals(""))
@@ -3975,7 +4133,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					teleport(player, null, warp, true, null);
 					last_warp_indexes.put(player.getName(), last_warp_index + amount);
 				} else
-					player.sendMessage(colorCode(replaceAll(warp.getNoWarpMessage(), "[player]", player.getName())));
+					player.sendMessage(colorCode(warp.getNoWarpMessage().replaceAll("\\[player\\]", player.getName())));
 			}
 		}
 	}
@@ -4243,11 +4401,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (player.getName().equals(owner) || player.hasPermission("myultrawarps.home.other") || player.hasPermission("myultrawarps.admin")) {
 				if (teleport(player, new UltraWarp("&aThis is the spot you were at before you teleported home.", player.getLocation()), warp, false, null))
 					if (player.getName().equals(owner) && !warp.getWarpMessage().equals(""))
-						player.sendMessage(colorCode(replaceAll(warp.getWarpMessage(), "[player]", player.getName())));
+						player.sendMessage(colorCode(warp.getWarpMessage().replaceAll("\\[player\\]", player.getName())));
 					else if (!warp.getWarpMessage().equals(""))
 						player.sendMessage(colorCode("&aWelcome home...wait, you're not " + warp.getOwner() + "! &o" + warp.getOwner().toUpperCase() + "!!!!"));
 			} else
-				player.sendMessage(colorCode(replaceAll(warp.getNoWarpMessage(), "[player]", player.getName())));
+				player.sendMessage(colorCode(warp.getNoWarpMessage().replaceAll("\\[player\\]", player.getName())));
 		} else {
 			// tell the player the warp wasn't found
 			if (player.getName().toLowerCase().startsWith(owner.toLowerCase()))
@@ -4872,7 +5030,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				teleport(player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name + ".", "", null, player
 						.getLocation()), warp, true, null);
 			} else
-				player.sendMessage(colorCode(replaceAll(warp.getNoWarpMessage(), "[player]", player.getName())));
+				player.sendMessage(colorCode(warp.getNoWarpMessage().replaceAll("[player]", player.getName())));
 		} else {
 			// tell the player the warp wasn't found
 			if (player.getName().equals(owner))
