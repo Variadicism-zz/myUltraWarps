@@ -50,16 +50,15 @@ import org.bukkit.World;
 public class myUltraWarps extends JavaPlugin implements Listener {
 	public static Server server;
 	public static ConsoleCommandSender console;
-	private static final String[] enable_messages = { "Scotty can now beam you up.", "The warps have entered the building.",
-			"These ARE the warps you're looking for.", "May the warps be with you.", "Let's rock these warps.", "Warp! Warp! Warp! Warp! Warp! Warp!",
-			"What warp through yonder server breaks?", "Wanna see me warp to that mountain and back?\nWanna see me do it again?",
-			"/jump is much less lethal now!", "/top used to take people above the Nether's ceiling!" }, disable_messages = { "Ta ta for now!", "See you soon!",
-			"I'll miss you!", "Don't forget me!", "Don't forget to write!", "Don't leave me here all alone!", "Hasta la vista, baby.", "Wait for me!" },
-			yeses = { "yes", "yeah", "yea", "yep", "sure", "why not", "okay", "do it", "fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah",
-					"hells yeah", "hells yes", "come" }, nos = { "no", "nah", "nope", "no thanks", "no don't", "hell no", "shut up", "ignore", "it's not",
-					"its not", "creeper", "unsafe", "wait", "one ", "1 " };
-	private static String[] parameters = new String[0], color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e",
-			"f" }, formatting_color_code_chars = { "k", "l", "m", "n", "o", "r" };
+	private static final String[] enable_messages = { "Scotty can now beam you up.", "The warps have entered the building.", "These ARE the warps you're looking for.",
+			"May the warps be with you.", "Let's rock these warps.", "Warp! Warp! Warp! Warp! Warp! Warp!", "What warp through yonder server breaks?",
+			"Wanna see me warp to that mountain and back?\nWanna see me do it again?", "/jump is much less lethal now!",
+			"/top used to take people above the Nether's ceiling!" }, disable_messages = { "Ta ta for now!", "See you soon!", "I'll miss you!", "Don't forget me!",
+			"Don't forget to write!", "Don't leave me here all alone!", "Hasta la vista, baby.", "Wait for me!" }, yeses = { "yes", "yeah", "yea", "yep", "sure", "why not",
+			"okay", "do it", "fine", "whatever", "very well", "accept", "tpa", "cool", "hell yeah", "hells yeah", "hells yes", "come" }, nos = { "no", "nah", "nope",
+			"no thanks", "no don't", "hell no", "shut up", "ignore", "it's not", "its not", "creeper", "unsafe", "wait", "one ", "1 " };
+	private static String[] parameters = new String[0], color_color_code_chars = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f" },
+			formatting_color_code_chars = { "k", "l", "m", "n", "o", "r" };
 	// owner and name are important so that methods can access the name and owner specified by a command as extrapolated by locateWarp() even if locateWarp
 	// returns a null UltraWarp
 	private String owner, name;
@@ -184,8 +183,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				help_line[2] = false;
 				help_line[3] = 1;
 			} else if (i == 10) {
-				help_line[0] =
-						"&a&o/move (\"warp\") (owner\"'s\") [warp name] &fmoves the warp to your current location. You can also use &a&o/translate warp&f.";
+				help_line[0] = "&a&o/move (\"warp\") (owner\"'s\") [warp name] &fmoves the warp to your current location. You can also use &a&o/translate warp&f.";
 				help_line[1] = "myultrawarps.move";
 				help_line[2] = true;
 				help_line[3] = 2;
@@ -294,8 +292,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				help_line[2] = false;
 				help_line[3] = 1;
 			} else if (i == 31) {
-				help_line[0] =
-						"&a&o/switch(\"es\") list &flists all your switches by warp that they're linked to and how many switches are linked to each warp.";
+				help_line[0] = "&a&o/switch(\"es\") list &flists all your switches by warp that they're linked to and how many switches are linked to each warp.";
 				help_line[1] = "myultrawarps.list";
 				help_line[2] = true;
 				help_line[3] = 2;
@@ -317,8 +314,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				help_line[2] = true;
 				help_line[3] = 5;
 			} else if (i == 35) {
-				help_line[0] =
-						"&a&o/from [player] &fforcibly teleports the designated player to you. You can also use &a&o/pull&f, &a&o/yank&f, &a&o/bring&f, or &a&o/get&f.";
+				help_line[0] = "&a&o/from [player] &fforcibly teleports the designated player to you. You can also use &a&o/pull&f, &a&o/yank&f, &a&o/bring&f, or &a&o/get&f.";
 				help_line[1] = "myultrawarps.from";
 				help_line[2] = false;
 				help_line[3] = 2;
@@ -418,8 +414,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} else if (command.equalsIgnoreCase("sethome") || (command.equalsIgnoreCase("set") && parameters.length > 0 && parameters[0].equalsIgnoreCase("home"))) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.sethome") || sender.hasPermission("myultrawarps.sethome.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
+					&& (sender.hasPermission("myultrawarps.sethome") || sender.hasPermission("myultrawarps.sethome.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")))
 				setHome(sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "You can't have a home! YOU...ARE...A...CONSOLE!");
@@ -434,46 +430,41 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					|| (sender.hasPermission("myultrawarps.list") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
 				warpList(sender);
 			else if (parameters.length == 0 || !parameters[0].equalsIgnoreCase("list"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list" + ChatColor.RED
+						+ ".");
 		} else if (((command.equalsIgnoreCase("full") || command.equalsIgnoreCase("entire") || command.equalsIgnoreCase("complete")) && parameters.length > 1
 				&& (parameters[0].equalsIgnoreCase("warp") || parameters[0].equalsIgnoreCase("warps")) && parameters[1].equalsIgnoreCase("list"))
 				|| (command.equalsIgnoreCase("fullwarplist") || command.equalsIgnoreCase("entirewarplist") || command.equalsIgnoreCase("completewarplist")
-						|| command.equalsIgnoreCase("fullwarpslist") || command.equalsIgnoreCase("entirewarpslist") || command
-							.equalsIgnoreCase("completewarpslist"))) {
+						|| command.equalsIgnoreCase("fullwarpslist") || command.equalsIgnoreCase("entirewarpslist") || command.equalsIgnoreCase("completewarpslist"))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.list.full") || sender.hasPermission("myultrawarps.admin"))
 				fullWarpList(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ " warps list" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warps list"
+						+ ChatColor.RED + ".");
 		} else if ((command.equalsIgnoreCase("switchlist") || command.equalsIgnoreCase("switcheslist"))
-				|| ((command.equalsIgnoreCase("switch") || command.equalsIgnoreCase("switches")) && parameters.length > 0 && parameters[0]
-						.equalsIgnoreCase("list"))) {
+				|| ((command.equalsIgnoreCase("switch") || command.equalsIgnoreCase("switches")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
 			success = true;
 			if (!(sender instanceof Player)
 					|| (sender.hasPermission("myultrawarps.list") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
 				switchList(sender);
 			else if (parameters.length == 0 || !parameters[0].equalsIgnoreCase("list"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " list" + ChatColor.RED
+						+ ".");
 		} else if (((command.equalsIgnoreCase("full") || command.equalsIgnoreCase("entire") || command.equalsIgnoreCase("complete")) && parameters.length > 1
 				&& (parameters[0].equalsIgnoreCase("switch") || parameters[0].equalsIgnoreCase("switches")) && parameters[1].equalsIgnoreCase("list"))
-				|| (command.equalsIgnoreCase("fullswitchlist") || command.equalsIgnoreCase("entireswitchlist")
-						|| command.equalsIgnoreCase("completeswitchlist") || command.equalsIgnoreCase("fullswitcheslist")
-						|| command.equalsIgnoreCase("entireswitcheslist") || command.equalsIgnoreCase("completeswitcheslist"))) {
+				|| (command.equalsIgnoreCase("fullswitchlist") || command.equalsIgnoreCase("entireswitchlist") || command.equalsIgnoreCase("completeswitchlist")
+						|| command.equalsIgnoreCase("fullswitcheslist") || command.equalsIgnoreCase("entireswitcheslist") || command.equalsIgnoreCase("completeswitcheslist"))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.list.full") || sender.hasPermission("myultrawarps.admin"))
 				fullSwitchList(sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ " switches list" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " switches list"
+						+ ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("spawn")) {
 			success = true;
 			if (sender instanceof Player
@@ -490,30 +481,29 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						.equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.create") || sender.hasPermission("myultrawarps.create.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 0)
+					&& (sender.hasPermission("myultrawarps.create") || sender.hasPermission("myultrawarps.create.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 0)
 				createWarp(0, sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "Silly console! You can't make a warp! You have no body! :P");
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to name the warp!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if ((command.equalsIgnoreCase("create") || command.equalsIgnoreCase("make") || command.equalsIgnoreCase("set")) && parameters.length > 0
 				&& parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.create") || sender.hasPermission("myultrawarps.create.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 1)
+					&& (sender.hasPermission("myultrawarps.create") || sender.hasPermission("myultrawarps.create.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 1)
 				createWarp(1, sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "Silly console! You can't make a warp! You have no body! :P");
 			else if (parameters.length <= 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to name the warp!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp" + ChatColor.RED
+						+ ".");
 		} else if (command.equalsIgnoreCase("warpinfo")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.warpinfo") || sender.hasPermission("myultrawarps.warpinfo.other")
@@ -536,8 +526,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warp info" + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("warpall")) {
 			success = true;
-			if (parameters.length > 0
-					&& (!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
+			if (parameters.length > 0 && (!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
 				warpAll(0, sender);
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want all the players warped!");
@@ -545,8 +534,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/warpall" + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("warp") && parameters.length > 0 && parameters[0].equalsIgnoreCase("all")) {
 			success = true;
-			if (parameters.length > 1
-					&& (!(sender instanceof Player) || sender.hasPermission("myultrrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
+			if (parameters.length > 1 && (!(sender instanceof Player) || sender.hasPermission("myultrrawarps.warpall") || sender.hasPermission("myultrawarps.admin")))
 				warpAll(1, sender);
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want all the players warped!");
@@ -570,8 +558,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to warp to preset warps.");
 			} else {
 				if (sender instanceof Player
-						&& (sender.hasPermission("myultrawarps.warptocoord") || sender.hasPermission("myultrawarps.user") || sender
-								.hasPermission("myultrawarps.admin")))
+						&& (sender.hasPermission("myultrawarps.warptocoord") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
 					warpToCoordinate(sender);
 				else if (!(sender instanceof Player))
 					console.sendMessage(ChatColor.RED + "Silly console! You can't warp! You have no body! :P");
@@ -581,8 +568,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} else if (command.equalsIgnoreCase("warptocoord")) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.warptocoord") || sender.hasPermission("myultrawarps.user") || sender
-							.hasPermission("myultrawarps.admin")) && parameters.length >= 3)
+					&& (sender.hasPermission("myultrawarps.warptocoord") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
+					&& parameters.length >= 3)
 				warpToCoordinate(sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "Silly console! You can't warp! You have no body! :P");
@@ -611,15 +598,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/default no " + parameters[1].toLowerCase()
 							+ ChatColor.RED + ".");
 				else
-					sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/default " + parameters[0].toLowerCase()
-							+ ChatColor.RED + ".");
+					sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/default " + parameters[0].toLowerCase() + ChatColor.RED
+							+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me the new default message!");
 
-		} else if (command.equalsIgnoreCase("changewarp")
-				|| command.equalsIgnoreCase("modifywarp")
-				|| ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && (parameters.length == 0 || !parameters[0]
-						.equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("changewarp") || command.equalsIgnoreCase("modifywarp")
+				|| ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
@@ -630,10 +615,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You didn't tell me what to change!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("warp")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if ((command.equalsIgnoreCase("change") || command.equalsIgnoreCase("modify")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -644,12 +627,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 2)
 				sender.sendMessage(ChatColor.RED + "You didn't tell me what to change!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
-						+ ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("deletewarp")
-				|| command.equalsIgnoreCase("removewarp")
-				|| ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && (parameters.length == 0 || !parameters[0]
-						.equalsIgnoreCase("warp")))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp" + ChatColor.RED
+						+ ".");
+		} else if (command.equalsIgnoreCase("deletewarp") || command.equalsIgnoreCase("removewarp")
+				|| ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.delete") || sender.hasPermission("myultrawarps.delete.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -658,10 +639,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp to delete!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("warp")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if ((command.equalsIgnoreCase("delete") || command.equalsIgnoreCase("remove")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if ((!(sender instanceof Player) || (sender.hasPermission("myultrawarps.delete") || sender.hasPermission("myultrawarps.delete.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -670,8 +649,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp to delete!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp" + ChatColor.RED
+						+ ".");
 		} else if ((command.equalsIgnoreCase("back") || command.equalsIgnoreCase("return") || command.equalsIgnoreCase("last"))) {
 			success = true;
 			if (sender instanceof Player
@@ -680,8 +659,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "How exactly can you go back to your last warp if you can't warp in the first place?");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("jump") || command.equalsIgnoreCase("j")) {
 			success = true;
 			if (sender instanceof Player
@@ -691,43 +669,37 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.GREEN + "You jumped! " + ChatColor.RED + "Just kidding. You're a console and you have no body.");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/jump" + ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("linkwarp")
-				|| (command.equalsIgnoreCase("link") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("linkwarp") || (command.equalsIgnoreCase("link") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 0)
+					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 0)
 				linkWarp(0, sender);
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp I should use!");
 			else if (!(sender instanceof Player))
-				console.sendMessage(ChatColor.RED + "Point out the switch you want to link \"" + parameters[0]
-						+ "\" to. Oh, wait. You can't. You're a console.");
+				console.sendMessage(ChatColor.RED + "Point out the switch you want to link \"" + parameters[0] + "\" to. Oh, wait. You can't. You're a console.");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("link") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 1)
+					&& (sender.hasPermission("myultrawarps.link") || sender.hasPermission("myultrawarps.link.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 1)
 				linkWarp(1, sender);
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what warp I should use!");
 			else if (!(sender instanceof Player))
-				console.sendMessage(ChatColor.RED + "Point out the switch you want to link \"" + parameters[0]
-						+ "\" to. Oh, wait. You can't. You're a console.");
+				console.sendMessage(ChatColor.RED + "Point out the switch you want to link \"" + parameters[0] + "\" to. Oh, wait. You can't. You're a console.");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/link warp" + ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("unlinkwarp")
-				|| (command.equalsIgnoreCase("unlink") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("unlinkwarp") || (command.equalsIgnoreCase("unlink") && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.unlink") || sender.hasPermission("myultrawarps.unlink.other")
 					|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
 				unlinkWarp(0, sender);
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("unlink") && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.unlink") || sender.hasPermission("myultrawarps.unlink.other")
@@ -735,41 +707,37 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				unlinkWarp(1, sender);
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/unlink warp" + ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("movewarp")
-				|| command.equalsIgnoreCase("translatewarp")
-				|| (((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate"))) && (parameters.length == 0 || !parameters[0]
-						.equalsIgnoreCase("warp")))) {
+		} else if (command.equalsIgnoreCase("movewarp") || command.equalsIgnoreCase("translatewarp")
+				|| (((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate"))) && (parameters.length == 0 || !parameters[0].equalsIgnoreCase("warp")))) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 0)
+					&& (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 0)
 				moveWarp(0, sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "You can't move any warps because you can't point out a new location for the warp! You have no body!");
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me which warp to move!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate")) && parameters.length > 0
-				&& parameters[0].equalsIgnoreCase("warp")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if ((command.equalsIgnoreCase("move") || command.equalsIgnoreCase("translate")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("warp")) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")) && parameters.length > 1)
+					&& (sender.hasPermission("myultrawarps.change") || sender.hasPermission("myultrawarps.change.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")) && parameters.length > 1)
 				moveWarp(1, sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "You can't move any warps because you can't point out a new location for the warp! You have no body!");
 			else if (parameters.length == 1)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me which warp to move!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warp" + ChatColor.RED
+						+ ".");
 		} else if (command.equalsIgnoreCase("home") || command.equalsIgnoreCase("h")) {
 			success = true;
 			if (sender instanceof Player
-					&& (sender.hasPermission("myultrawarps.home") || sender.hasPermission("myultrawarps.home.other")
-							|| sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
+					&& (sender.hasPermission("myultrawarps.home") || sender.hasPermission("myultrawarps.home.other") || sender.hasPermission("myultrawarps.user") || sender
+							.hasPermission("myultrawarps.admin")))
 				home(sender);
 			else if (!(sender instanceof Player))
 				console.sendMessage(ChatColor.RED + "You can't have a home! YOU...ARE...A...CONSOLE!");
@@ -779,17 +747,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				&& (parameters.length == 0 || (parameters.length > 0 && parameters[0].equalsIgnoreCase("help")))) {
 			success = true;
 			displayHelp(sender);
-		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
-				&& parameters.length > 1
-				&& parameters[0].equalsIgnoreCase("save")
-				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
-						.equalsIgnoreCase("warps")))) {
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) && parameters.length > 1 && parameters[0].equalsIgnoreCase("save")
+				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2].equalsIgnoreCase("warps")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheWarps(sender, true);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
 		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
@@ -801,46 +765,35 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheSwitches(sender, true);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps"))
-				&& parameters.length > 1
-				&& parameters[0].equalsIgnoreCase("save")
-				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
-						.equalsIgnoreCase("config")))) {
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) && parameters.length > 1 && parameters[0].equalsIgnoreCase("save")
+				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2].equalsIgnoreCase("config")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				saveTheConfig(sender, true);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) && parameters.length == 1
-				&& parameters[0].equalsIgnoreCase("save")) {
+		} else if ((command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) && parameters.length == 1 && parameters[0].equalsIgnoreCase("save")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")) {
 				saveTheWarps(sender, true);
 				saveTheSwitches(sender, true);
 				saveTheConfig(sender, true);
 			} else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps save" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW save" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
-				&& parameters.length > 1
-				&& parameters[0].equalsIgnoreCase("load")
-				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
-						.equalsIgnoreCase("warps")))) {
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length > 1 && parameters[0].equalsIgnoreCase("load")
+				&& (parameters[1].equalsIgnoreCase("warps") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2].equalsIgnoreCase("warps")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheWarps(sender);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
 		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
@@ -852,43 +805,34 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheSwitches(sender);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW"))
-				&& parameters.length > 1
-				&& parameters[0].equalsIgnoreCase("load")
-				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2]
-						.equalsIgnoreCase("config")))) {
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length > 1 && parameters[0].equalsIgnoreCase("load")
+				&& (parameters[1].equalsIgnoreCase("config") || (parameters.length > 2 && parameters[1].equalsIgnoreCase("the") && parameters[2].equalsIgnoreCase("config")))) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				loadTheConfig(sender);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length == 1
-				&& parameters[0].equalsIgnoreCase("load")) {
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length == 1 && parameters[0].equalsIgnoreCase("load")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")) {
 				loadTheWarps(sender);
 				loadTheSwitches(sender);
 				loadTheConfig(sender);
 			} else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps load" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW load" + ChatColor.RED + ".");
-		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length >= 1
-				&& parameters[0].toLowerCase().startsWith("update")) {
+		} else if ((command.equalsIgnoreCase("myUltraWarps") || command.equalsIgnoreCase("mUW")) && parameters.length >= 1 && parameters[0].toLowerCase().startsWith("update")) {
 			success = true;
 			if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin"))
 				checkForUpdates(sender);
 			else if (command.equalsIgnoreCase("myUltraWarps"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps update" + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/myUltraWarps update" + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/mUW update" + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("mUW") || command.equalsIgnoreCase("myUltraWarps")) {
@@ -911,16 +855,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} else if (command.equalsIgnoreCase("switchinfo")) {
 			success = true;
 			if (!(sender instanceof Player)
-					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender
-							.hasPermission("myultrawarps.admin"))) {
+					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))) {
 				switchInfo(0, sender);
 			} else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/switchinfo" + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("switch") && parameters.length > 0 && parameters[0].equalsIgnoreCase("info")) {
 			success = true;
 			if (!(sender instanceof Player)
-					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender
-							.hasPermission("myultrawarps.admin"))) {
+					|| (sender.hasPermission("myultrawarps.switchinfo") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))) {
 				switchInfo(1, sender);
 			} else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/switch info" + ChatColor.RED + ".");
@@ -935,10 +877,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who I should teleport you to!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("from") || command.equalsIgnoreCase("pull") || command.equalsIgnoreCase("yank")
-				|| command.equalsIgnoreCase("bring") || command.equalsIgnoreCase("get")) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("from") || command.equalsIgnoreCase("pull") || command.equalsIgnoreCase("yank") || command.equalsIgnoreCase("bring")
+				|| command.equalsIgnoreCase("get")) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.from") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin"))
@@ -949,12 +890,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who I should teleport to you!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("send")) {
 			success = true;
-			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.send") || sender.hasPermission("myultrawarps.admin"))
-					&& parameters.length >= 2)
+			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.send") || sender.hasPermission("myultrawarps.admin")) && parameters.length >= 2)
 				send(sender);
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me who you want me to send where!");
@@ -962,16 +901,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where to send " + parameters[0] + "!");
 			else
 				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/send" + ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("warps") && parameters.length > 0
-				&& (parameters[0].equalsIgnoreCase("around") || parameters[0].equalsIgnoreCase("near"))) {
+		} else if (command.equalsIgnoreCase("warps") && parameters.length > 0 && (parameters[0].equalsIgnoreCase("around") || parameters[0].equalsIgnoreCase("near"))) {
 			success = true;
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpsaround") || sender.hasPermission("myultrawarps.user") || sender
 					.hasPermission("myultrawarps.admin"))
 					&& parameters.length > 1)
 				warpsAround(1, sender, command);
 			else if (parameters.length > 1)
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/warps " + parameters[0].toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/warps " + parameters[0].toLowerCase() + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want the search to be centered!");
 		} else if (command.equalsIgnoreCase("warpsaround") || command.equalsIgnoreCase("warpsnear")) {
@@ -981,8 +918,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					&& parameters.length > 0)
 				warpsAround(0, sender, command);
 			else if (parameters.length > 0)
-				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED
-						+ ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me where you want the search to be centered!");
 		} else if (command.equalsIgnoreCase("maxwarps") || command.equalsIgnoreCase("maximumwarps")) {
@@ -990,8 +926,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (parameters.length > 0 && (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")))
 				changeMaxWarps(0, sender);
 			else if (sender instanceof Player && !sender.hasPermission("myultrawarps.admin"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want me to change the max warps to!");
 		} else if ((command.equalsIgnoreCase("max") || command.equalsIgnoreCase("maximum")) && parameters.length > 0 && parameters[0].equalsIgnoreCase("warps")) {
@@ -999,8 +934,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (parameters.length > 1 && (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")))
 				changeMaxWarps(1, sender);
 			else if (sender instanceof Player && !sender.hasPermission("myultrawarps.admin"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warps"
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + " warps" + ChatColor.RED
+						+ ".");
 			else
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want me to change the max warps to!");
 		} else if (command.equalsIgnoreCase("forward") || command.equalsIgnoreCase("fwd")) {
@@ -1009,17 +944,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					&& (sender.hasPermission("myultrawarps.admin") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.back")))
 				forward(sender);
 			else if (!(sender instanceof Player))
-				sender.sendMessage(ChatColor.RED
-						+ "You're a console!! How can I warp you somewhere you've already warped if you can't warp at all in the first place?!");
+				sender.sendMessage(ChatColor.RED + "You're a console!! How can I warp you somewhere you've already warped if you can't warp at all in the first place?!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("deathfwd")
-				|| command.equals("fwddeath")
-				|| command.equalsIgnoreCase("dfwd")
-				|| command.equalsIgnoreCase("fwdd")
-				|| (command.equalsIgnoreCase("death") && parameters.length > 0 && (parameters[0].equalsIgnoreCase("fwd") || parameters[0]
-						.equalsIgnoreCase("forward")))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("deathfwd") || command.equals("fwddeath") || command.equalsIgnoreCase("dfwd") || command.equalsIgnoreCase("fwdd")
+				|| (command.equalsIgnoreCase("death") && parameters.length > 0 && (parameters[0].equalsIgnoreCase("fwd") || parameters[0].equalsIgnoreCase("forward")))) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.admin") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.death")))
@@ -1028,8 +957,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.RED
 						+ "You can't die, you can't warp, and you can't warp to your death location. How do you suppose I would move you forward in your death history?");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 		} else if (command.equalsIgnoreCase("death")) {
 			success = true;
 			if (sender instanceof Player
@@ -1038,10 +966,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (!(sender instanceof Player))
 				sender.sendMessage(ChatColor.RED + "You can't go back to your last death location! You can't warp! You can't even die!");
 			else
-				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase()
-						+ ChatColor.RED + ".");
-		} else if (command.equalsIgnoreCase("blocklist")
-				|| (command.equalsIgnoreCase("block") && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
+				sender.sendMessage(ChatColor.RED + "Sorry, but you don't have permission to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
+		} else if (command.equalsIgnoreCase("blocklist") || (command.equalsIgnoreCase("block") && parameters.length > 0 && parameters[0].equalsIgnoreCase("list"))) {
 			success = true;
 			if (sender instanceof Player
 					&& (sender.hasPermission("myultrawarps.block") || sender.hasPermission("myultrawarps.user") || sender.hasPermission("myultrawarps.admin")))
@@ -1263,16 +1189,15 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									+ colorCode(warp_message) + ChatColor.GREEN + ".\"";
 			else if (warp_message.endsWith(".") || warp_message.endsWith("!") || warp_message.endsWith("?"))
 				result_message =
-						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name
-								+ "\" will see \"" + ChatColor.WHITE + colorCode(warp_message) + ChatColor.GREEN + "\"";
+						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name + "\" will see \""
+								+ ChatColor.WHITE + colorCode(warp_message) + ChatColor.GREEN + "\"";
 			else if (warp_message.equals(""))
 				result_message =
-						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name
-								+ "\" won't see a message.";
+						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name + "\" won't see a message.";
 			else
 				result_message =
-						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name
-								+ "\" will see \"" + ChatColor.WHITE + colorCode(warp_message) + ChatColor.GREEN + ".\"";
+						result_message + ChatColor.GREEN + "Now people who successfully warp to " + true_owner_name + "'s \"" + true_warp_name + "\" will see \""
+								+ ChatColor.WHITE + colorCode(warp_message) + ChatColor.GREEN + ".\"";
 		} else if (parsing_no_warp_message) {
 			parsing_no_warp_message = false;
 			if (!result_message.equals(""))
@@ -1280,27 +1205,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (player_is_owner)
 				if (warp_message.endsWith(".") || warp_message.endsWith("!") || warp_message.endsWith("?"))
 					result_message =
-							result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" will see \""
-									+ ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + "\"";
+							result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" will see \"" + ChatColor.WHITE
+									+ colorCode(no_warp_message) + ChatColor.GREEN + "\"";
 				else if (no_warp_message.equals(""))
-					result_message =
-							result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" won't see a message.";
+					result_message = result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" won't see a message.";
 				else
 					result_message =
-							result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" will see \""
-									+ ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + ".\"";
+							result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to \"" + true_warp_name + "\" will see \"" + ChatColor.WHITE
+									+ colorCode(no_warp_message) + ChatColor.GREEN + ".\"";
 			else if (no_warp_message.endsWith(".") || no_warp_message.endsWith("!") || no_warp_message.endsWith("?"))
 				result_message =
-						result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to " + true_owner_name + "'s \"" + true_warp_name
-								+ "\" will see \"" + ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + "\"";
+						result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to " + true_owner_name + "'s \"" + true_warp_name + "\" will see \""
+								+ ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + "\"";
 			else if (no_warp_message.equals(""))
 				result_message =
 						result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to " + true_owner_name + "'s \"" + true_warp_name
 								+ "\" won't see a message.";
 			else
 				result_message =
-						result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to " + true_owner_name + "'s \"" + true_warp_name
-								+ "\" will see \"" + ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + ".\"";
+						result_message + ChatColor.GREEN + "Now people who aren't allowed to warp to " + true_owner_name + "'s \"" + true_warp_name + "\" will see \""
+								+ ChatColor.WHITE + colorCode(no_warp_message) + ChatColor.GREEN + ".\"";
 		}
 		return result_message;
 	}
@@ -1321,12 +1245,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// if this player's name also matches and it shorter, return it instead becuase if someone is using an autocompleted command, we need to make sure
 			// to get the shortest name because if they meant to use the longer username, they can remedy this by adding more letters to the parameter; however,
 			// if they meant to do a shorter username and the auto-complete finds the longer one first, they're screwed
-			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase())
-					&& (full_name == null || full_name.length() > possible_owner.getName().length()))
+			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase()) && (full_name == null || full_name.length() > possible_owner.getName().length()))
 				full_name = possible_owner.getName();
 		for (OfflinePlayer possible_owner : server.getOfflinePlayers())
-			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase())
-					&& (full_name == null || full_name.length() > possible_owner.getName().length()))
+			if (possible_owner.getName().toLowerCase().startsWith(name.toLowerCase()) && (full_name == null || full_name.length() > possible_owner.getName().length()))
 				full_name = possible_owner.getName();
 		return full_name;
 	}
@@ -1452,22 +1374,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	public boolean teleport(Player player, UltraWarp from, UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
 		SettingsSet set = getSettings(player.getName());
 		// stop here if the cooldown timer has not finished
-		if (cooling_down_players.containsKey(player.getName())
-				&& !player.hasPermission("myultrawarps.admin")
+		if (cooling_down_players.containsKey(player.getName()) && !player.hasPermission("myultrawarps.admin")
 				&& (non_teleporting_player == null || (non_teleporting_player instanceof Player && !non_teleporting_player.hasPermission("myultrawarps.admin")))) {
-			player.sendMessage(ChatColor.RED
-					+ "Sorry, but you still have to wait "
-					+ translateTimeInmsToString(set.cooldown - (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())),
-							true) + " before you can teleport again.");
+			player.sendMessage(ChatColor.RED + "Sorry, but you still have to wait "
+					+ translateTimeInmsToString(set.cooldown - (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())), true)
+					+ " before you can teleport again.");
 			if (non_teleporting_player != null)
 				// in some instances like /to or /from, other players are involved in the telportation. These players need to be informed of cool down timer
 				// restrictions
-				non_teleporting_player.sendMessage(ChatColor.RED
-						+ "Sorry, but "
-						+ player.getName()
-						+ " can't teleport for another "
-						+ translateTimeInmsToString(set.cooldown
-								- (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())), true) + ".");
+				non_teleporting_player.sendMessage(ChatColor.RED + "Sorry, but " + player.getName() + " can't teleport for another "
+						+ translateTimeInmsToString(set.cooldown - (int) (Calendar.getInstance().getTimeInMillis() - cooling_down_players.get(player.getName())), true) + ".");
 			return false;
 		}
 		// teleport the player
@@ -1513,8 +1429,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	@EventHandler
 	public void informPlayersOfStuffAndRemoveTheirCoolingDownStatusIfNecessary(PlayerJoinEvent event) {
 		if (!event.getPlayer().hasPlayedBefore())
-			event.getPlayer().sendMessage(
-					colorCode(replaceAll(spawn_messages_by_world.get(event.getPlayer().getWorld()), "[player]", event.getPlayer().getName())));
+			event.getPlayer().sendMessage(colorCode(replaceAll(spawn_messages_by_world.get(event.getPlayer().getWorld()), "[player]", event.getPlayer().getName())));
 		else {
 			// tell admins that myUltraWarps has updated
 			File new_myUltraWarps = new File(this.getDataFolder(), "myUltraWarps.jar");
@@ -1531,8 +1446,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// I would have it check when it's loading the temporary data concerning cooling down players, but the player needs to be online for me to check all
 			// their permissions, so I have to check it when they log on instead
 			if (cooling_down_players.containsKey(event.getPlayer().getName())
-					&& cooling_down_players.get(event.getPlayer().getName()) + getSettings(event.getPlayer().getName()).cooldown < Calendar.getInstance()
-							.getTimeInMillis())
+					&& cooling_down_players.get(event.getPlayer().getName()) + getSettings(event.getPlayer().getName()).cooldown < Calendar.getInstance().getTimeInMillis())
 				cooling_down_players.remove(event.getPlayer().getName());
 		}
 	}
@@ -1563,8 +1477,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
 				for (UltraSwitch my_switch : switches)
 					if (target_block.getLocation().equals(my_switch.getLocation())
-							&& ((my_switch.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.PHYSICAL)) || (!my_switch
-									.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))) {
+							&& ((my_switch.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.PHYSICAL)) || (!my_switch.getSwitchType().equals(
+									"pressure plate") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))) {
 						target = my_switch;
 						break;
 					}
@@ -1580,15 +1494,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						for (String listed_user : warp_target.getListedUsers())
 							if (listed_user.equals(event.getPlayer().getName()))
 								listed = true;
-						if (event.getPlayer().getName().equals(warp_target.getOwner()) || (!warp_target.isRestricted() && !listed)
-								|| (warp_target.isRestricted() && listed) || event.getPlayer().hasPermission("myultrawarps.warptowarp.other")
-								|| event.getPlayer().hasPermission("myultrawarps.admin")) {
+						if (event.getPlayer().getName().equals(warp_target.getOwner()) || (!warp_target.isRestricted() && !listed) || (warp_target.isRestricted() && listed)
+								|| event.getPlayer().hasPermission("myultrawarps.warptowarp.other") || event.getPlayer().hasPermission("myultrawarps.admin")) {
 							String warp_name = warp_target.getName();
 							if (!warp_target.getOwner().equals(event.getPlayer().getName()))
 								warp_name = warp_target.getOwner() + "'s " + warp_target.getName();
-							teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false,
-									"&aThis is the spot you were at before you warped to " + warp_name + ".", "", null, event.getPlayer().getLocation()),
-									warp_target, true, null);
+							teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name
+									+ ".", "", null, event.getPlayer().getLocation()), warp_target, true, null);
 						} else
 							event.getPlayer().sendMessage(colorCode(replaceAll(warp_target.getNoWarpMessage(), "[player]", event.getPlayer().getName())));
 					}
@@ -1624,8 +1536,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					} // if the switch was broken by an admin
 					else if (event.getPlayer().hasPermission("myultrawarps.unlink.other") || event.getPlayer().hasPermission("myultrawarps.admin")) {
 						event.getPlayer().sendMessage(
-								ChatColor.GREEN + "You unlinked " + switches.get(i).getWarpOwner() + "'s " + switches.get(i).getSwitchType()
-										+ " that was linked to \"" + switches.get(i).getWarpName() + ".\"");
+								ChatColor.GREEN + "You unlinked " + switches.get(i).getWarpOwner() + "'s " + switches.get(i).getSwitchType() + " that was linked to \""
+										+ switches.get(i).getWarpName() + ".\"");
 						boolean owner_found = false;
 						for (Player player : server.getOnlinePlayers())
 							if (player.getName().equals(switches.get(i).getWarpOwner())) {
@@ -1695,9 +1607,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							ArrayList<String> messages = info_messages_for_players.get(switches.get(j).getWarpOwner());
 							if (messages == null)
 								messages = new ArrayList<String>();
-							messages.add(ChatColor.RED + cause + " broke your " + switches.get(j).getSwitchType() + " at (" + (int) switches.get(j).getX()
-									+ ", " + (int) switches.get(j).getY() + ", " + (int) switches.get(j).getZ() + ") in \""
-									+ switches.get(j).getWorld().getName() + ".\"");
+							messages.add(ChatColor.RED + cause + " broke your " + switches.get(j).getSwitchType() + " at (" + (int) switches.get(j).getX() + ", "
+									+ (int) switches.get(j).getY() + ", " + (int) switches.get(j).getZ() + ") in \"" + switches.get(j).getWorld().getName() + ".\"");
 							info_messages_for_players.put(switches.get(j).getWarpOwner(), messages);
 						}
 						switches.remove(j);
@@ -1733,9 +1644,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (accepted != null && accepted) {
 				event.setCancelled(true);
 				if (teleport(teleporting_player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you teleported to "
-						+ event.getPlayer().getName() + ".", "", null, teleporting_player.getLocation()),
-						new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at when you teleported to "
-								+ event.getPlayer().getName() + ".", "", null, event.getPlayer().getLocation()), false, event.getPlayer())) {
+						+ event.getPlayer().getName() + ".", "", null, teleporting_player.getLocation()), new UltraWarp("God", "coordinates", false, false,
+						"&aThis is the spot you were at when you teleported to " + event.getPlayer().getName() + ".", "", null, event.getPlayer().getLocation()), false, event
+						.getPlayer())) {
 					teleporting_player.sendMessage(ChatColor.GREEN + event.getPlayer().getName() + " said \"" + event.getMessage() + "\"!");
 					event.getPlayer().sendMessage(ChatColor.GREEN + "Cool. I'll go get " + teleporting_player.getName() + ".");
 				}
@@ -1752,12 +1663,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			} else if (accepted != null) {
 				event.setCancelled(true);
 				if (!event.getMessage().endsWith(".") && !event.getMessage().endsWith("!") && !event.getMessage().endsWith("?")) {
-					event.getPlayer().sendMessage(
-							ChatColor.GREEN + "Okay. I'll tell " + teleporting_player.getName() + " that you said \"" + event.getMessage() + ".\"");
+					event.getPlayer().sendMessage(ChatColor.GREEN + "Okay. I'll tell " + teleporting_player.getName() + " that you said \"" + event.getMessage() + ".\"");
 					teleporting_player.sendMessage(ChatColor.RED + "Sorry, but " + event.getPlayer().getName() + " said \"" + event.getMessage() + ".\"");
 				} else {
-					event.getPlayer().sendMessage(
-							ChatColor.GREEN + "Okay. I'll tell " + teleporting_player.getName() + " that you said \"" + event.getMessage() + "\"");
+					event.getPlayer().sendMessage(ChatColor.GREEN + "Okay. I'll tell " + teleporting_player.getName() + " that you said \"" + event.getMessage() + "\"");
 					teleporting_player.sendMessage(ChatColor.RED + "Sorry, but " + event.getPlayer().getName() + " said \"" + event.getMessage() + "\"");
 				}
 				ArrayList<String> requesting_players = to_teleport_requests.get(event.getPlayer().getName());
@@ -1775,8 +1684,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			Player non_teleporting_player = server.getPlayer(from_teleport_requests.get(event.getPlayer().getName()).get(0));
 			// if the target player went offline, tell this player
 			if (non_teleporting_player == null) {
-				event.getPlayer().sendMessage(
-						ChatColor.RED + from_teleport_requests.get(event.getPlayer().getName()).get(0) + " must have gone offline. Sorry.");
+				event.getPlayer().sendMessage(ChatColor.RED + from_teleport_requests.get(event.getPlayer().getName()).get(0) + " must have gone offline. Sorry.");
 				event.setCancelled(true);
 				ArrayList<String> requesting_players = from_teleport_requests.get(event.getPlayer().getName());
 				if (requesting_players == null)
@@ -1792,10 +1700,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			Boolean accepted = getResponse(event.getPlayer(), event.getMessage(), null, null);
 			if (accepted != null && accepted) {
 				event.setCancelled(true);
-				if (teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before "
-						+ non_teleporting_player.getName() + " teleported you to them.", "", null, event.getPlayer().getLocation()), new UltraWarp("God",
-						"coordinates", false, false, "&aThis is the spot you were at when you were teleported to " + non_teleporting_player.getName() + ".",
-						"", null, non_teleporting_player.getLocation()), false, non_teleporting_player)) {
+				if (teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before " + non_teleporting_player.getName()
+						+ " teleported you to them.", "", null, event.getPlayer().getLocation()),
+						new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at when you were teleported to " + non_teleporting_player.getName()
+								+ ".", "", null, non_teleporting_player.getLocation()), false, non_teleporting_player)) {
 					event.getPlayer().sendMessage(ChatColor.GREEN + "Here's your " + non_teleporting_player.getName() + "!");
 					non_teleporting_player.sendMessage(ChatColor.GREEN + "Look! I brought you a " + event.getPlayer().getName() + "!");
 				}
@@ -1803,12 +1711,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				event.setCancelled(true);
 				// inform both players
 				if (!event.getMessage().endsWith(".") && !event.getMessage().endsWith("!") && !event.getMessage().endsWith("?")) {
-					event.getPlayer().sendMessage(
-							ChatColor.GREEN + "Okay. I'll tell " + non_teleporting_player.getName() + " that you said \"" + event.getMessage() + ".\"");
+					event.getPlayer().sendMessage(ChatColor.GREEN + "Okay. I'll tell " + non_teleporting_player.getName() + " that you said \"" + event.getMessage() + ".\"");
 					non_teleporting_player.sendMessage(ChatColor.RED + "Sorry, but " + event.getPlayer().getName() + " said \"" + event.getMessage() + ".\"");
 				} else {
-					event.getPlayer().sendMessage(
-							ChatColor.GREEN + "Okay. I'll tell " + non_teleporting_player.getName() + " that you said \"" + event.getMessage() + "\"");
+					event.getPlayer().sendMessage(ChatColor.GREEN + "Okay. I'll tell " + non_teleporting_player.getName() + " that you said \"" + event.getMessage() + "\"");
 					non_teleporting_player.sendMessage(ChatColor.RED + "Sorry, but " + event.getPlayer().getName() + " said \"" + event.getMessage() + "\"");
 				}
 				// remove the teleportation request
@@ -1873,27 +1779,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						delete_index = 0;
 						for (int j = 0; j < temp_warps.size(); j++) {
 							if (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) < 0
-									|| (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) == 0 && temp_warps.get(j).getOwner()
-											.compareToIgnoreCase(first_warp.getOwner()) < 0)) {
+									|| (temp_warps.get(j).getName().compareToIgnoreCase(first_warp.getName()) == 0 && temp_warps.get(j).getOwner().compareToIgnoreCase(
+											first_warp.getOwner()) < 0)) {
 								first_warp = temp_warps.get(j);
 								delete_index = j;
 							}
 						}
 						// rename warps named "info", "all", or "list"
-						if (!first_warp.getName().equalsIgnoreCase("info") && !first_warp.getName().equalsIgnoreCase("all")
-								&& !first_warp.getName().equalsIgnoreCase("list"))
+						if (!first_warp.getName().equalsIgnoreCase("info") && !first_warp.getName().equalsIgnoreCase("all") && !first_warp.getName().equalsIgnoreCase("list"))
 							warps.add(first_warp);
 						else {
 							UltraWarp renamed_first_warp =
-									new UltraWarp(first_warp.getOwner(), "my" + first_warp.getName(), first_warp.isListed(), first_warp.isRestricted(),
-											first_warp.getWarpMessage(), first_warp.getNoWarpMessage(), first_warp.getListedUsers(), first_warp.getLocation());
+									new UltraWarp(first_warp.getOwner(), "my" + first_warp.getName(), first_warp.isListed(), first_warp.isRestricted(), first_warp
+											.getWarpMessage(), first_warp.getNoWarpMessage(), first_warp.getListedUsers(), first_warp.getLocation());
 							warps.add(renamed_first_warp);
 							boolean found = false;
 							for (Player renamed_warp_owner : server.getOnlinePlayers())
 								if (renamed_warp_owner.getName().equals(first_warp.getOwner())) {
 									renamed_warp_owner.sendMessage(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
-											+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName()
-											+ ChatColor.RED + ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
+											+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName() + ChatColor.RED
+											+ ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
 									found = true;
 								}
 							if (!found) {
@@ -1902,8 +1807,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								if (messages == null)
 									messages = new ArrayList<String>();
 								messages.add(ChatColor.RED + "I found a warp of yours that was named \"" + first_warp.getName()
-										+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName()
-										+ ChatColor.RED + ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
+										+ ".\" Unfortunately, it interferes with the command " + ChatColor.GREEN + "/warp " + first_warp.getName() + ChatColor.RED
+										+ ", so I had to rename it \"my" + first_warp.getName() + ".\" Sorry for the inconvenience.");
 								info_messages_for_players.put(first_warp.getOwner(), messages);
 							}
 						}
@@ -1924,8 +1829,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					else if (warps.size() == 1)
 						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 warp from file.");
 					else
-						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-								+ " loaded the server's warps from file, but there were no warps on file.");
+						console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's warps from file, but there were no warps on file.");
 			}
 		} catch (IOException exception) {
 			console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to save your warps.");
@@ -2000,8 +1904,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else if (switches.size() == 1)
 				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's 1 switch from file.");
 			else
-				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName()
-						+ " loaded the server's switches from file, but there were no switches on file.");
+				console.sendMessage(ChatColor.GREEN + ((Player) sender).getName() + " loaded the server's switches from file, but there were no switches on file.");
 	}
 
 	private void loadTheConfig(CommandSender sender) {
@@ -2121,8 +2024,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						global_set = new SettingsSet();
 					// read!
 					if (save_line.startsWith("Do you want players to be able to teleport to one another without asking permission?"))
-						global_set.must_request_to =
-								!getResponse(sender, save_line.substring(84), in.readLine(), "Right now, players can teleport to each other freely.");
+						global_set.must_request_to = !getResponse(sender, save_line.substring(84), in.readLine(), "Right now, players can teleport to each other freely.");
 					else if (save_line.startsWith("Do you want players to be able teleport other players places without asking permission?"))
 						global_set.must_request_from =
 								!getResponse(sender, save_line.substring(87), in.readLine(), "Right now, players can teleport each other to them freely.");
@@ -2190,10 +2092,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							save_line = save_line.substring(1);
 						if (save_line.startsWith("Do you want players in this group to be able to teleport to one another without asking permission?"))
 							group_set.must_request_to =
-									!getResponse(sender, save_line.substring(99), in.readLine(),
-											"Right now, players in this group can teleport to each other freely.");
-						else if (save_line
-								.startsWith("Do you want players in this group to be able to teleport other players places without asking permission?"))
+									!getResponse(sender, save_line.substring(99), in.readLine(), "Right now, players in this group can teleport to each other freely.");
+						else if (save_line.startsWith("Do you want players in this group to be able to teleport other players places without asking permission?"))
 							group_set.must_request_from =
 									!getResponse(sender, save_line.substring(104), in.readLine(), "Right now, players can teleport each other to them freely.");
 						else if (save_line.toLowerCase().startsWith("default warp message: "))
@@ -2208,8 +2108,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									group_set.max_warps = -1;
 								else {
 									sender.sendMessage(ChatColor.RED + "There was an error in your group settings.");
-									sender.sendMessage(ChatColor.RED
-											+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
+									sender.sendMessage(ChatColor.RED + "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
 								}
 							}
 						} else if (save_line.toLowerCase().startsWith("cool down time: "))
@@ -2268,8 +2167,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							player_set.must_request_to =
 									!getResponse(sender, save_line.substring(72 + parsing_player.length()), in.readLine(), "Right now, " + parsing_player
 											+ " can teleport freely.");
-						else if (save_line.startsWith("Do you want " + parsing_player
-								+ " to be able to teleport other players places without asking permission?"))
+						else if (save_line.startsWith("Do you want " + parsing_player + " to be able to teleport other players places without asking permission?"))
 							player_set.must_request_from =
 									!getResponse(sender, save_line.substring(83 + parsing_player.length()), in.readLine(), "Right now, " + parsing_player
 											+ " can teleport others to them freely.");
@@ -2285,8 +2183,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									player_set.max_warps = -1;
 								else {
 									sender.sendMessage(ChatColor.RED + "There was an error in your individual settings.");
-									sender.sendMessage(ChatColor.RED
-											+ "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
+									sender.sendMessage(ChatColor.RED + "The maximum number of warps that someone can have has to be an integer or \"infinite.\"");
 								}
 							}
 						} else if (save_line.toLowerCase().startsWith("cool down time: "))
@@ -2388,8 +2285,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 										world = my_world;
 										break;
 									}
-								death_history.add(new Location(world, Double.parseDouble(temp[1]), Double.parseDouble(temp[2]), Double.parseDouble(temp[3]),
-										Float.parseFloat(temp[4]), Float.parseFloat(temp[5])));
+								death_history.add(new Location(world, Double.parseDouble(temp[1]), Double.parseDouble(temp[2]), Double.parseDouble(temp[3]), Float
+										.parseFloat(temp[4]), Float.parseFloat(temp[5])));
 								death_histories.put(player, death_history);
 							} catch (NumberFormatException exception2) {
 								console.sendMessage(ChatColor.DARK_RED + "There was a problem reading the death history from the temporary data file!");
@@ -2405,8 +2302,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						try {
 							cooling_down_players.put(player, Long.parseLong(save_line));
 						} catch (NumberFormatException exception) {
-							console.sendMessage(ChatColor.DARK_RED + "There was an error in loading the cool down time data for " + player
-									+ " from the temporary file!");
+							console.sendMessage(ChatColor.DARK_RED + "There was an error in loading the cool down time data for " + player + " from the temporary file!");
 						}
 					}
 					save_line = in.readLine();
@@ -2787,8 +2683,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				out.write("== " + key + " ==");
 				out.newLine();
 				for (Location death : death_histories.get(key)) {
-					out.write(death.getWorld().getName() + "," + death.getX() + "," + death.getY() + "," + death.getZ() + "," + death.getYaw() + ","
-							+ death.getPitch());
+					out.write(death.getWorld().getName() + "," + death.getX() + "," + death.getY() + "," + death.getZ() + "," + death.getYaw() + "," + death.getPitch());
 					out.newLine();
 				}
 				if (last_warp_to_death_indexes.get(key) != null) {
@@ -2856,9 +2751,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				String basic_permission_node = (String) help_pages.get(i)[1];
 				boolean included_with_user = (Boolean) help_pages.get(i)[2];
 				int chat_lines_in_this_line = (Integer) help_pages.get(i)[3];
-				if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin")
-						|| (included_with_user && sender.hasPermission("myultrawarps.user")) || sender.hasPermission(basic_permission_node)
-						|| sender.hasPermission(basic_permission_node + ".other")) {
+				if (!(sender instanceof Player) || sender.hasPermission("myultrawarps.admin") || (included_with_user && sender.hasPermission("myultrawarps.user"))
+						|| sender.hasPermission(basic_permission_node) || sender.hasPermission(basic_permission_node + ".other")) {
 					if (i != 0)
 						current_page = current_page + "\n";
 					number_of_lines = number_of_lines + chat_lines_in_this_line;
@@ -2920,9 +2814,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				for (String listed_player : last_warp.getListedUsers())
 					if (listed_player.equals(player.getName()))
 						player_is_listed = true;
-			if (player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.warptowarp.other")
-					|| last_warp.getOwner().equals(player.getName()) || (!last_warp.isRestricted() && !player_is_listed)
-					|| (last_warp.isRestricted() && player_is_listed)) {
+			if (player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.warptowarp.other") || last_warp.getOwner().equals(player.getName())
+					|| (!last_warp.isRestricted() && !player_is_listed) || (last_warp.isRestricted() && player_is_listed)) {
 				teleport(player, null, last_warp, true, null);
 				last_warp_indexes.put(player.getName(), last_warp_index - amount);
 			} else
@@ -3077,8 +2970,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				if (warp.getOwner().equalsIgnoreCase(player.getName()))
 					number_of_warps++;
 			if (number_of_warps >= set.max_warps) {
-				player.sendMessage(ChatColor.RED + "Sorry, but you're only allowed to create " + (Integer) set.max_warps
-						+ " warps and you've already reached your limit.");
+				player.sendMessage(ChatColor.RED + "Sorry, but you're only allowed to create " + (Integer) set.max_warps + " warps and you've already reached your limit.");
 				return;
 			}
 		}
@@ -3101,9 +2993,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						|| (warp.getName().compareToIgnoreCase(parameters[extra_param]) == 0 && warp.getOwner().compareToIgnoreCase(owner) <= 0))
 					insertion_index++;
 			// create the warp
-			warps.add(insertion_index, new UltraWarp(owner, parameters[extra_param], listed, restricted, warp_message, no_warp_message, listed_users, player
-					.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player.getLocation()
-					.getYaw(), player.getLocation().getWorld()));
+			warps.add(insertion_index, new UltraWarp(owner, parameters[extra_param], listed, restricted, warp_message, no_warp_message, listed_users, player.getLocation()
+					.getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player.getLocation().getYaw(), player.getLocation()
+					.getWorld()));
 			if (autosave_warps)
 				saveTheWarps(sender, false);
 			if (player.getName().toLowerCase().startsWith(owner.toLowerCase()))
@@ -3111,19 +3003,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			else
 				player.sendMessage(ChatColor.GREEN + "You made a warp called \"" + parameters[extra_param] + "\" for " + owner + ".");
 		} else if (parameters[extra_param].equalsIgnoreCase("info"))
-			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"info\" because it interferes with the command " + ChatColor.GREEN
-					+ "/warp info" + ChatColor.RED + ".");
+			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"info\" because it interferes with the command " + ChatColor.GREEN + "/warp info"
+					+ ChatColor.RED + ".");
 		else if (parameters[extra_param].equalsIgnoreCase("all"))
-			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"all\" because it interferes with the command " + ChatColor.GREEN
-					+ "/warp all" + ChatColor.RED + ".");
+			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"all\" because it interferes with the command " + ChatColor.GREEN + "/warp all"
+					+ ChatColor.RED + ".");
 		else if (parameters[extra_param].equalsIgnoreCase("list"))
-			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"list\" because it interferes with the command " + ChatColor.GREEN
-					+ "/warp list" + ChatColor.RED + ".");
+			sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"list\" because it interferes with the command " + ChatColor.GREEN + "/warp list"
+					+ ChatColor.RED + ".");
 		else if (parameters[extra_param].toLowerCase().endsWith("'s"))
 			sender.sendMessage(ChatColor.RED
 					+ "Sorry, but you can't make a warp with a name ending in \"'s\" because I check for that to see whether you're specifying an owner or just giving a warp name alone and if the warp name has that \"'s\", I get very confused.");
-		else if (!player.getName().equalsIgnoreCase(owner)
-				&& !(player.hasPermission("myultrawarps.create.other") || player.hasPermission("myultrawarps.admin"))) {
+		else if (!player.getName().equalsIgnoreCase(owner) && !(player.hasPermission("myultrawarps.create.other") || player.hasPermission("myultrawarps.admin"))) {
 			// check if the player receiving the warp already has that warp
 			boolean warp_already_exists = false;
 			for (int i = 0; i < warps.size(); i++)
@@ -3139,13 +3030,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							|| (warp.getName().compareToIgnoreCase(parameters[extra_param]) == 0 && warp.getOwner().compareToIgnoreCase(owner) <= 0))
 						insertion_index++;
 				// create the warp
-				warps.add(insertion_index, new UltraWarp(owner, parameters[extra_param], listed, restricted, warp_message, no_warp_message, listed_users,
-						player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player
-								.getLocation().getYaw(), player.getLocation().getWorld()));
+				warps.add(insertion_index, new UltraWarp(owner, parameters[extra_param], listed, restricted, warp_message, no_warp_message, listed_users, player.getLocation()
+						.getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player.getLocation().getYaw(), player
+						.getLocation().getWorld()));
 				player.sendMessage(ChatColor.GREEN + "You made a warp called \"" + parameters[extra_param] + "\" for " + owner + ".");
 			} else
-				player.sendMessage(ChatColor.RED + owner + " already has a warp called \"" + parameters[extra_param]
-						+ "\" and you're not allowed to overwrite it.");
+				player.sendMessage(ChatColor.RED + owner + " already has a warp called \"" + parameters[extra_param] + "\" and you're not allowed to overwrite it.");
 		}
 	}
 
@@ -3159,8 +3049,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// search through the parameters for info changes
 			boolean listed = warp.isListed(), restricted = warp.isRestricted(), old_listed = warp.isListed(), old_restricted = warp.isRestricted();
 			String warp_message = warp.getWarpMessage(), no_warp_message = warp.getNoWarpMessage(), old_warp_message = warp.getWarpMessage(), old_no_warp_message =
-					warp.getNoWarpMessage(), owner = warp.getOwner(), name = warp.getName(), old_owner = warp.getOwner(), old_name = warp.getName(), result_message =
-					"";
+					warp.getNoWarpMessage(), owner = warp.getOwner(), name = warp.getName(), old_owner = warp.getOwner(), old_name = warp.getName(), result_message = "";
 			String[] listed_users = warp.getListedUsers(), old_listed_users = warp.getListedUsers();
 			boolean player_is_owner = false;
 			if (player != null && player.getName().toLowerCase().startsWith(owner.toLowerCase()))
@@ -3175,12 +3064,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (!result_message.equals(""))
 						result_message = result_message + "\n";
 					if (player_is_owner)
-						result_message =
-								result_message + ChatColor.GREEN + "\"" + name + "\" is now an " + ChatColor.WHITE + "open " + ChatColor.GREEN + "warp.";
+						result_message = result_message + ChatColor.GREEN + "\"" + name + "\" is now an " + ChatColor.WHITE + "open " + ChatColor.GREEN + "warp.";
 					else
-						result_message =
-								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now an " + ChatColor.WHITE + "open " + ChatColor.GREEN
-										+ "warp.";
+						result_message = result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now an " + ChatColor.WHITE + "open " + ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:s")) {
 					result_message = stopParsingMessages(warp_message, no_warp_message, name, owner, player_is_owner, sender, result_message);
 					listed = false;
@@ -3188,12 +3074,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (!result_message.equals(""))
 						result_message = result_message + "\n";
 					if (player_is_owner)
-						result_message =
-								result_message + ChatColor.GREEN + "\"" + name + "\" is now a " + ChatColor.GRAY + "secret " + ChatColor.GREEN + "warp.";
+						result_message = result_message + ChatColor.GREEN + "\"" + name + "\" is now a " + ChatColor.GRAY + "secret " + ChatColor.GREEN + "warp.";
 					else
-						result_message =
-								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now a " + ChatColor.GRAY + "secret " + ChatColor.GREEN
-										+ "warp.";
+						result_message = result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now a " + ChatColor.GRAY + "secret " + ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:a")) {
 					result_message = stopParsingMessages(warp_message, no_warp_message, name, owner, player_is_owner, sender, result_message);
 					listed = true;
@@ -3201,12 +3084,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (!result_message.equals(""))
 						result_message = result_message + "\n";
 					if (player_is_owner)
-						result_message =
-								result_message + ChatColor.GREEN + "\"" + name + "\" is now an " + ChatColor.RED + "advertised " + ChatColor.GREEN + "warp.";
+						result_message = result_message + ChatColor.GREEN + "\"" + name + "\" is now an " + ChatColor.RED + "advertised " + ChatColor.GREEN + "warp.";
 					else
 						result_message =
-								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now an " + ChatColor.RED + "advertised " + ChatColor.GREEN
-										+ "warp.";
+								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now an " + ChatColor.RED + "advertised " + ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("type:p")) {
 					result_message = stopParsingMessages(warp_message, no_warp_message, name, owner, player_is_owner, sender, result_message);
 					listed = false;
@@ -3214,12 +3095,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (!result_message.equals(""))
 						result_message = result_message + "\n";
 					if (player_is_owner)
-						result_message =
-								result_message + ChatColor.GREEN + "\"" + name + "\" is now a " + ChatColor.DARK_RED + "private " + ChatColor.GREEN + "warp.";
+						result_message = result_message + ChatColor.GREEN + "\"" + name + "\" is now a " + ChatColor.DARK_RED + "private " + ChatColor.GREEN + "warp.";
 					else
 						result_message =
-								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now a " + ChatColor.DARK_RED + "private " + ChatColor.GREEN
-										+ "warp.";
+								result_message + ChatColor.GREEN + owner + "'s \"" + name + "\" is now a " + ChatColor.DARK_RED + "private " + ChatColor.GREEN + "warp.";
 				} else if (parameters[j].toLowerCase().startsWith("name:")) {
 					result_message = stopParsingMessages(warp_message, no_warp_message, name, owner, player_is_owner, sender, result_message);
 					String temp_old_name = name;
@@ -3255,8 +3134,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						if (!result_message.equals(""))
 							result_message = result_message + "\n";
 						result_message =
-								result_message + ChatColor.RED + "Sorry, but you can't make a warp called \"" + name
-										+ "\" because it interferes with the command " + ChatColor.GREEN + "/warp " + name + ChatColor.RED + ".";
+								result_message + ChatColor.RED + "Sorry, but you can't make a warp called \"" + name + "\" because it interferes with the command "
+										+ ChatColor.GREEN + "/warp " + name + ChatColor.RED + ".";
 						name = temp_old_name;
 					}
 				} else if (parameters[j].toLowerCase().startsWith("warp:")) {
@@ -3312,30 +3191,28 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									result_message = result_message + ChatColor.GREEN + listed_users_list[0] + " is now allowed to use \"" + name + ".\"";
 								else if (listed_users_list.length == 2)
 									result_message =
-											result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1]
-													+ " are now allowed to use \"" + name + ".\"";
+											result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1] + " are now allowed to use \"" + name
+													+ ".\"";
 								else {
 									String message = ChatColor.GREEN + "";
 									for (int i = 0; i < listed_users_list.length - 1; i++)
 										message = message + listed_users_list[i] + ", ";
 									result_message =
-											result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are now allowed to use \""
-													+ name + ".\"";
+											result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are now allowed to use \"" + name + ".\"";
 								}
 							else if (listed_users_list.length == 1)
-								result_message =
-										result_message + ChatColor.GREEN + listed_users_list[0] + " is now allowed to use " + owner + "'s \"" + name + ".\"";
+								result_message = result_message + ChatColor.GREEN + listed_users_list[0] + " is now allowed to use " + owner + "'s \"" + name + ".\"";
 							else if (listed_users_list.length == 2)
 								result_message =
-										result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1] + " are now allowed to use "
-												+ owner + "'s \"" + name + ".\"";
+										result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1] + " are now allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							else {
 								String message = ChatColor.GREEN + "";
 								for (int i = 0; i < listed_users_list.length - 1; i++)
 									message = message + listed_users_list[i] + ", ";
 								result_message =
-										result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are now allowed to use "
-												+ owner + "'s \"" + name + ".\"";
+										result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are now allowed to use " + owner + "'s \""
+												+ name + ".\"";
 							}
 						} else {
 							if (player_is_owner)
@@ -3343,31 +3220,29 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									result_message = result_message + ChatColor.GREEN + listed_users_list[0] + " is no longer allowed to use \"" + name + ".\"";
 								else if (listed_users_list.length == 2)
 									result_message =
-											result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1]
-													+ " are no longer allowed to use \"" + name + ".\"";
+											result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1] + " are no longer allowed to use \""
+													+ name + ".\"";
 								else {
 									String message = ChatColor.GREEN + "";
 									for (int i = 0; i < listed_users_list.length - 1; i++)
 										message = message + listed_users_list[i] + ", ";
 									result_message =
-											result_message + message + " and " + listed_users_list[listed_users_list.length - 1]
-													+ " are no longer allowed to use \"" + name + ".\"";
+											result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are no longer allowed to use \"" + name
+													+ ".\"";
 								}
 							else if (listed_users_list.length == 1)
-								result_message =
-										result_message + ChatColor.GREEN + listed_users_list[0] + " is no longer allowed to use " + owner + "'s \"" + name
-												+ ".\"";
+								result_message = result_message + ChatColor.GREEN + listed_users_list[0] + " is no longer allowed to use " + owner + "'s \"" + name + ".\"";
 							else if (listed_users_list.length == 2)
 								result_message =
-										result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1]
-												+ " are no longer allowed to use " + owner + "'s \"" + name + ".\"";
+										result_message + ChatColor.GREEN + listed_users_list[0] + " and " + listed_users_list[1] + " are no longer allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							else {
 								String message = ChatColor.GREEN + "";
 								for (int i = 0; i < listed_users_list.length - 1; i++)
 									message = message + listed_users_list[i] + ", ";
 								result_message =
-										result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are no longer allowed to use "
-												+ owner + "'s \"" + name + ".\"";
+										result_message + message + " and " + listed_users_list[listed_users_list.length - 1] + " are no longer allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							}
 						}
 						String[] temp_listed_users = listed_users;
@@ -3392,35 +3267,32 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						if (restricted) {
 							if (player_is_owner)
 								if (unlisted_users_list.length == 1)
-									result_message =
-											result_message + ChatColor.GREEN + unlisted_users_list[0] + " is no longer allowed to use \"" + name + ".\"";
+									result_message = result_message + ChatColor.GREEN + unlisted_users_list[0] + " is no longer allowed to use \"" + name + ".\"";
 								else if (unlisted_users_list.length == 2)
 									result_message =
-											result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1]
-													+ " are no longer allowed to use \"" + name + ".\"";
+											result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1] + " are no longer allowed to use \""
+													+ name + ".\"";
 								else {
 									String message = ChatColor.GREEN + "";
 									for (int i = 0; i < unlisted_users_list.length - 1; i++)
 										message = message + unlisted_users_list[i] + ", ";
 									result_message =
-											result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1]
-													+ " are no longer allowed to use \"" + name + ".\"";
+											result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1] + " are no longer allowed to use \""
+													+ name + ".\"";
 								}
 							else if (unlisted_users_list.length == 1)
-								result_message =
-										result_message + ChatColor.GREEN + unlisted_users_list[0] + " is no longer allowed to use " + owner + "'s \"" + name
-												+ ".\"";
+								result_message = result_message + ChatColor.GREEN + unlisted_users_list[0] + " is no longer allowed to use " + owner + "'s \"" + name + ".\"";
 							else if (unlisted_users_list.length == 2)
 								result_message =
-										result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1]
-												+ " are no longer allowed to use " + owner + "'s \"" + name + ".\"";
+										result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1] + " are no longer allowed to use "
+												+ owner + "'s \"" + name + ".\"";
 							else {
 								String message = ChatColor.GREEN + "";
 								for (int i = 0; i < unlisted_users_list.length - 1; i++)
 									message = message + unlisted_users_list[i] + ", ";
 								result_message =
-										result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1]
-												+ " are no longer allowed to use " + owner + "'s \"" + name + ".\"";
+										result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1] + " are no longer allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							}
 						} else {
 							if (player_is_owner)
@@ -3428,30 +3300,29 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 									result_message = result_message + ChatColor.GREEN + unlisted_users_list[0] + " is now allowed to use \"" + name + ".\"";
 								else if (unlisted_users_list.length == 2)
 									result_message =
-											result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1]
-													+ " are now allowed to use \"" + name + ".\"";
+											result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1] + " are now allowed to use \"" + name
+													+ ".\"";
 								else {
 									String message = ChatColor.GREEN + "";
 									for (int i = 0; i < unlisted_users_list.length - 1; i++)
 										message = message + unlisted_users_list[i] + ", ";
 									result_message =
-											result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1]
-													+ " are now allowed to use \"" + name + ".\"";
+											result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1] + " are now allowed to use \"" + name
+													+ ".\"";
 								}
 							else if (unlisted_users_list.length == 1)
-								result_message =
-										result_message + ChatColor.GREEN + unlisted_users_list[0] + " is now allowed to use " + owner + "'s \"" + name + ".\"";
+								result_message = result_message + ChatColor.GREEN + unlisted_users_list[0] + " is now allowed to use " + owner + "'s \"" + name + ".\"";
 							else if (unlisted_users_list.length == 2)
 								result_message =
-										result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1]
-												+ " are now allowed to use " + owner + "'s \"" + name + ".\"";
+										result_message + ChatColor.GREEN + unlisted_users_list[0] + " and " + unlisted_users_list[1] + " are now allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							else {
 								String message = ChatColor.GREEN + "";
 								for (int i = 0; i < unlisted_users_list.length - 1; i++)
 									message = message + unlisted_users_list[i] + ", ";
 								result_message =
-										result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1] + " are now allowed to use "
-												+ owner + "'s \"" + name + ".\"";
+										result_message + message + " and " + unlisted_users_list[unlisted_users_list.length - 1] + " are now allowed to use " + owner
+												+ "'s \"" + name + ".\"";
 							}
 						}
 					}
@@ -3480,8 +3351,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					&& !name.equals("all")
 					&& (player == null || owner.equalsIgnoreCase(player.getName()) || player.hasPermission("myultrawarps.change.other") || player
 							.hasPermission("myultrawarps.admin"))) {
-				if (name.equals(old_name) && owner.equals(old_owner) && listed == old_listed && restricted == old_restricted
-						&& warp_message.equals(old_warp_message) && no_warp_message.equals(old_no_warp_message) && listed_users.equals(old_listed_users))
+				if (name.equals(old_name) && owner.equals(old_owner) && listed == old_listed && restricted == old_restricted && warp_message.equals(old_warp_message)
+						&& no_warp_message.equals(old_no_warp_message) && listed_users.equals(old_listed_users))
 					sender.sendMessage(ChatColor.RED + "You didn't change anything!");
 				else {
 					UltraWarp new_warp = new UltraWarp(owner, name, listed, restricted, warp_message, no_warp_message, listed_users, warp.getLocation());
@@ -3505,18 +3376,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							if (switches.get(i).getWarpName().equals(old_name) && switches.get(i).getWarpOwner().equals(old_owner)) {
 								number_of_affected_switches++;
 								UltraSwitch new_switch =
-										new UltraSwitch(name, owner, switches.get(i).getSwitchType(), switches.get(i).getCooldownTime(), switches.get(i)
-												.getMaxUses(), switches.get(i).hasAGlobalCooldown(), switches.get(i).getCost(), switches.get(i)
-												.getExemptedPlayers(), switches.get(i).getX(), switches.get(i).getY(), switches.get(i).getZ(), switches.get(i)
-												.getWorld());
+										new UltraSwitch(name, owner, switches.get(i).getSwitchType(), switches.get(i).getCooldownTime(), switches.get(i).getMaxUses(),
+												switches.get(i).hasAGlobalCooldown(), switches.get(i).getCost(), switches.get(i).getExemptedPlayers(), switches.get(i).getX(),
+												switches.get(i).getY(), switches.get(i).getZ(), switches.get(i).getWorld());
 								switches.remove(i);
 								// find out where the new switch needs to be in
 								// the list to be properly alphabetized
 								insertion_index = 0;
 								for (UltraSwitch my_switch : switches)
 									if (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) < 0
-											|| (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) == 0 && my_switch.getWarpOwner()
-													.compareToIgnoreCase(warp.getOwner()) <= 0))
+											|| (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) == 0 && my_switch.getWarpOwner().compareToIgnoreCase(
+													warp.getOwner()) <= 0))
 										insertion_index++;
 								switches.add(insertion_index, new_switch);
 							}
@@ -3528,14 +3398,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					}
 				}
 			} else if (name.equalsIgnoreCase("info"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"info\" because it interferes with the command " + ChatColor.GREEN
-						+ "/warp info" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"info\" because it interferes with the command " + ChatColor.GREEN + "/warp info"
+						+ ChatColor.RED + ".");
 			else if (name.equalsIgnoreCase("all"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"all\" because it interferes with the command " + ChatColor.GREEN
-						+ "/warp all" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"all\" because it interferes with the command " + ChatColor.GREEN + "/warp all"
+						+ ChatColor.RED + ".");
 			else if (name.equalsIgnoreCase("list"))
-				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"list\" because it interferes with the command " + ChatColor.GREEN
-						+ "/warp list" + ChatColor.RED + ".");
+				sender.sendMessage(ChatColor.RED + "Sorry, but you can't name a warp \"list\" because it interferes with the command " + ChatColor.GREEN + "/warp list"
+						+ ChatColor.RED + ".");
 			else {
 				// check if the player receiving the warp already has that
 				// warp
@@ -3544,8 +3414,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (warps.get(i).getOwner().toLowerCase().startsWith(owner.toLowerCase())
 							&& warps.get(i).getName().toLowerCase().startsWith(parameters[extra_param].toLowerCase()))
 						warp_already_exists = true;
-				if (!warp_already_exists || !(sender instanceof Player) || sender.hasPermission("myultrawarps.change.other")
-						|| sender.hasPermission("myultrawarps.admin")) {
+				if (!warp_already_exists || !(sender instanceof Player) || sender.hasPermission("myultrawarps.change.other") || sender.hasPermission("myultrawarps.admin")) {
 					warps.remove(index);
 					// find out where the new warp needs to be in the list to be
 					// properly alphabetized
@@ -3625,21 +3494,19 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					set.default_warp = new_message;
 					settings.put("[server]", set);
 					if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-								+ ChatColor.GREEN + "\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + "\"");
 					else
-						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-								+ ChatColor.GREEN + ".\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed the default warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + ".\"");
 				} else {
 					SettingsSet set = settings.get("[server]");
 					set.default_no_warp = new_message;
 					settings.put("[server]", set);
 					if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-						sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-								+ ChatColor.GREEN + "\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+								+ "\"");
 					else
-						sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-								+ ChatColor.GREEN + ".\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+								+ ".\"");
 				}
 			} else if (target_is_group) {
 				// simultaneously autocomplete the group name and see if it even exists at all
@@ -3656,19 +3523,19 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (change_warp_message) {
 						set.default_warp = new_message;
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \""
-									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + "\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \"" + ChatColor.WHITE
+									+ colorCode(new_message) + ChatColor.GREEN + "\"");
 						else
-							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \""
-									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + ".\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed the default warp message for the " + config_target + " group to \"" + ChatColor.WHITE
+									+ colorCode(new_message) + ChatColor.GREEN + ".\"");
 					} else {
 						set.default_no_warp = new_message;
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + " group to \""
-									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + "\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + " group to \"" + ChatColor.WHITE
+									+ colorCode(new_message) + ChatColor.GREEN + "\"");
 						else
-							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + "mgroup to \""
-									+ ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN + ".\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed the default no warp message for the " + config_target + "mgroup to \"" + ChatColor.WHITE
+									+ colorCode(new_message) + ChatColor.GREEN + ".\"");
 					}
 					settings.put("[" + config_target + "]", set);
 				} else
@@ -3679,32 +3546,32 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					set.default_warp = new_message;
 					if (player != null && player.getName().equals(config_target))
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-							sender.sendMessage(ChatColor.GREEN + "You changed your default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-									+ ChatColor.GREEN + "\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed your default warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+									+ "\"");
 						else
-							sender.sendMessage(ChatColor.GREEN + "You changed your default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-									+ ChatColor.GREEN + ".\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed your default warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+									+ ".\"");
 					else if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default warp message to \"" + ChatColor.WHITE
-								+ colorCode(new_message) + ChatColor.GREEN + "\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
+								+ ChatColor.GREEN + "\"");
 					else
-						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default warp message to \"" + ChatColor.WHITE
-								+ colorCode(new_message) + ChatColor.GREEN + ".\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default warp message to \"" + ChatColor.WHITE + colorCode(new_message)
+								+ ChatColor.GREEN + ".\"");
 				} else {
 					set.default_no_warp = new_message;
 					if (player != null && player.getName().equals(config_target))
 						if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-							sender.sendMessage(ChatColor.GREEN + "You changed your default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-									+ ChatColor.GREEN + "\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed your default no warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+									+ "\"");
 						else
-							sender.sendMessage(ChatColor.GREEN + "You changed your default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
-									+ ChatColor.GREEN + ".\"");
+							sender.sendMessage(ChatColor.GREEN + "You changed your default no warp message to \"" + ChatColor.WHITE + colorCode(new_message) + ChatColor.GREEN
+									+ ".\"");
 					else if (new_message.endsWith(".") || new_message.endsWith("!") || new_message.endsWith("?"))
-						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default no warp message to \"" + ChatColor.WHITE
-								+ colorCode(new_message) + ChatColor.GREEN + "\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
+								+ ChatColor.GREEN + "\"");
 					else
-						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default no warp message to \"" + ChatColor.WHITE
-								+ colorCode(new_message) + ChatColor.GREEN + ".\"");
+						sender.sendMessage(ChatColor.GREEN + "You changed " + config_target + "'s default no warp message to \"" + ChatColor.WHITE + colorCode(new_message)
+								+ ChatColor.GREEN + ".\"");
 				}
 				settings.put(config_target, set);
 			}
@@ -3778,8 +3645,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					SettingsSet set = settings.get("[" + config_target + "]");
 					set.max_warps = new_max_warps;
 					if (new_max_warps != -1)
-						sender.sendMessage(ChatColor.GREEN + "You changed the default maximum number of warps for the " + config_target + " group to "
-								+ new_max_warps + ".");
+						sender.sendMessage(ChatColor.GREEN + "You changed the default maximum number of warps for the " + config_target + " group to " + new_max_warps + ".");
 					else
 						sender.sendMessage(ChatColor.GREEN + "Everyone in the " + config_target + " group can now make as many warps as they want.");
 					settings.put("[" + config_target + "]", set);
@@ -3979,8 +3845,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			}
 		}
 		if (last_death != null) {
-			teleport(player, null, new UltraWarp(ChatColor.GREEN + "HERE LIES " + player.getName() + " (death #"
-					+ (death_history.size() - last_warp_to_death_index) + "/" + death_history.size() + ")", last_death), true, null);
+			teleport(player, null, new UltraWarp(ChatColor.GREEN + "HERE LIES " + player.getName() + " (death #" + (death_history.size() - last_warp_to_death_index) + "/"
+					+ death_history.size() + ")", last_death), true, null);
 			last_warp_to_death_indexes.put(player.getName(), last_warp_to_death_index - amount);
 		}
 	}
@@ -4104,8 +3970,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				for (String listed_player : warp.getListedUsers())
 					if (listed_player.equals(player.getName()))
 						player_is_listed = true;
-				if (player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.warptowarp.other")
-						|| warp.getOwner().equals(player.getName()) || (!warp.isRestricted() && !player_is_listed) || (warp.isRestricted() && player_is_listed)) {
+				if (player.hasPermission("myultrawarps.admin") || player.hasPermission("myultrawarps.warptowarp.other") || warp.getOwner().equals(player.getName())
+						|| (!warp.isRestricted() && !player_is_listed) || (warp.isRestricted() && player_is_listed)) {
 					teleport(player, null, warp, true, null);
 					last_warp_indexes.put(player.getName(), last_warp_index + amount);
 				} else
@@ -4137,9 +4003,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				while (requesting_players.contains(target_player.getName()))
 					requesting_players.remove(target_player.getName());
 				to_teleport_requests.put(player.getName(), requesting_players);
-				if (teleport(target_player, new UltraWarp("&aThis is the spot you were at before " + player.getName() + " teleported you to them.",
-						target_player.getLocation()), new UltraWarp("&aThis is the spot you were at when you were teleported to " + player.getName() + ".",
-						player.getLocation()), false, player)) {
+				if (teleport(target_player, new UltraWarp("&aThis is the spot you were at before " + player.getName() + " teleported you to them.", target_player
+						.getLocation()), new UltraWarp("&aThis is the spot you were at when you were teleported to " + player.getName() + ".", player.getLocation()), false,
+						player)) {
 					target_player.sendMessage(ChatColor.GREEN + "Here's your " + player.getName() + "!");
 					player.sendMessage(ChatColor.GREEN + "Look! I brought you a " + target_player.getName() + "!");
 				}
@@ -4152,10 +4018,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				requesting_players.add(player.getName());
 				from_teleport_requests.put(target_player.getName(), requesting_players);
 			}
-		} else if (target_player != null && blocked_players.get(target_player.getName()) != null
-				&& blocked_players.get(target_player.getName()).contains(player.getName()))
-			player.sendMessage(ChatColor.RED + "Sorry, but " + target_player.getName()
-					+ " has blocked you. You can't send them teleportation requests anymore.");
+		} else if (target_player != null && blocked_players.get(target_player.getName()) != null && blocked_players.get(target_player.getName()).contains(player.getName()))
+			player.sendMessage(ChatColor.RED + "Sorry, but " + target_player.getName() + " has blocked you. You can't send them teleportation requests anymore.");
 		else if (target_player != null && target_player.equals(player))
 			player.sendMessage(ChatColor.RED + "Can you explain to me how I'm supposed to teleport you to yourself?");
 		else if (target_player != null && !target_player.hasPermission("myultrawarps.to") && !target_player.hasPermission("myultrawarps.user")
@@ -4356,8 +4220,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Player player = (Player) sender;
 		Location target_location = player.getTargetBlock(null, 1024).getLocation();
 		if (target_location.getBlock().getTypeId() != 0)
-			teleport(player, null, new UltraWarp(ChatColor.GREEN + "You jumped!", new Location(player.getWorld(), target_location.getX() + 0.5, target_location
-					.getY() + 1, target_location.getZ() + 0.5, player.getLocation().getYaw(), player.getLocation().getPitch())), true, null);
+			teleport(player, null, new UltraWarp(ChatColor.GREEN + "You jumped!", new Location(player.getWorld(), target_location.getX() + 0.5, target_location.getY() + 1,
+					target_location.getZ() + 0.5, player.getLocation().getYaw(), player.getLocation().getPitch())), true, null);
 		else
 			player.sendMessage(ChatColor.RED + "Sorry, but I can't see that far!");
 	}
@@ -4403,9 +4267,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
 						|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
 			warp = locateWarp(extra_param, sender);
-			if (warp != null
-					&& (player.getName().equals(warp.getOwner()) || player.hasPermission("myultrawarps.link.other") || player
-							.hasPermission("myultrawarps.admin"))) {
+			if (warp != null && (player.getName().equals(warp.getOwner()) || player.hasPermission("myultrawarps.link.other") || player.hasPermission("myultrawarps.admin"))) {
 				// search for non-default settings changes
 				boolean parse_cooldown_time = false, error = false, global = false;
 				double cost = 0, previous_number = -1;
@@ -4464,13 +4326,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					int insertion_index = 0;
 					for (UltraSwitch my_switch : switches)
 						if (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) < 0
-								|| (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) == 0 && my_switch.getWarpOwner().compareToIgnoreCase(
-										warp.getOwner()) <= 0))
+								|| (my_switch.getWarpName().compareToIgnoreCase(warp.getName()) == 0 && my_switch.getWarpOwner().compareToIgnoreCase(warp.getOwner()) <= 0))
 							insertion_index++;
 					// make the switch
-					switches.add(insertion_index, new UltraSwitch(warp.getName(), warp.getOwner(), switch_type, cooldown_time, max_uses, global, cost,
-							exempted_players, target_block.getLocation().getX(), target_block.getLocation().getY(), target_block.getLocation().getZ(),
-							target_block.getLocation().getWorld()));
+					switches.add(insertion_index, new UltraSwitch(warp.getName(), warp.getOwner(), switch_type, cooldown_time, max_uses, global, cost, exempted_players,
+							target_block.getLocation().getX(), target_block.getLocation().getY(), target_block.getLocation().getZ(), target_block.getLocation().getWorld()));
 					if (autosave_switches)
 						saveTheSwitches(sender, false);
 					if (player.getName().toLowerCase().startsWith(warp.getOwner().toLowerCase()))
@@ -4490,19 +4350,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		} else if (target_block != null)
 			player.sendMessage(ChatColor.RED + "You can only link warps to buttons, pressure plates, or levers.");
 		else
-			player.sendMessage(ChatColor.RED + "Please point at the switch you want to link your warp to and try " + ChatColor.GREEN + "/link " + ChatColor.RED
-					+ "again.");
+			player.sendMessage(ChatColor.RED + "Please point at the switch you want to link your warp to and try " + ChatColor.GREEN + "/link " + ChatColor.RED + "again.");
 	}
 
 	private void moveWarp(int extra_param, CommandSender sender) {
 		Player player = (Player) sender;
 		UltraWarp warp = locateWarp(extra_param, sender);
 		// change the location of the warp or tell the player it can't be done
-		if (warp != null
-				&& (player.getName().equals(warp.getOwner()) || player.hasPermission("myultrawarps.change.other") || player.hasPermission("myultrawarps.admin"))) {
-			warps.set(index, new UltraWarp(warp.getOwner(), warp.getName(), warp.isListed(), warp.isRestricted(), warp.getWarpMessage(), warp
-					.getNoWarpMessage(), warp.getListedUsers(), player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player
-					.getLocation().getPitch(), player.getLocation().getYaw(), player.getLocation().getWorld()));
+		if (warp != null && (player.getName().equals(warp.getOwner()) || player.hasPermission("myultrawarps.change.other") || player.hasPermission("myultrawarps.admin"))) {
+			warps.set(index, new UltraWarp(warp.getOwner(), warp.getName(), warp.isListed(), warp.isRestricted(), warp.getWarpMessage(), warp.getNoWarpMessage(), warp
+					.getListedUsers(), player.getLocation().getX(), player.getLocation().getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player
+					.getLocation().getYaw(), player.getLocation().getWorld()));
 			if (autosave_warps)
 				saveTheWarps(sender, false);
 			if (player.getName().equals(warp.getOwner()))
@@ -4535,10 +4393,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (target_block != null) {
 						Location target_location = target_block.getLocation();
 						target_location.setY(target_location.getY() + 1);
-						if (teleport(target_player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before "
-								+ player.getName() + " teleported you elsewhere.", "", null, target_player.getLocation()),
-								new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at when you were teleported by "
-										+ player.getName() + ".", "", null, target_location), false, player)) {
+						if (teleport(target_player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before " + player.getName()
+								+ " teleported you elsewhere.", "", null, target_player.getLocation()), new UltraWarp("God", "coordinates", false, false,
+								"&aThis is the spot you were at when you were teleported by " + player.getName() + ".", "", null, target_location), false, player)) {
 							target_player.sendMessage(ChatColor.GREEN + player.getName() + " teleported you here.");
 							if (target_player.getName().toLowerCase().startsWith("a") || target_player.getName().toLowerCase().startsWith("e")
 									|| target_player.getName().toLowerCase().startsWith("i") || target_player.getName().toLowerCase().startsWith("o")
@@ -4564,13 +4421,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								+ " teleported you elsewhere.", "", null, target_player.getLocation()), warp, false, player)) {
 							if (sender_name.equals("someone"))
 								sender_name = "Someone";
-							target_player
-									.sendMessage(ChatColor.GREEN + sender_name + " telported you to " + warp.getOwner() + "'s \"" + warp.getName() + ".\"");
+							target_player.sendMessage(ChatColor.GREEN + sender_name + " telported you to " + warp.getOwner() + "'s \"" + warp.getName() + ".\"");
 							if (player != null && warp.getOwner().equals(player.getName()))
 								player.sendMessage(ChatColor.GREEN + "I sent " + target_player.getName() + " to \"" + warp.getName() + ".\"");
 							else
-								sender.sendMessage(ChatColor.GREEN + "I sent " + target_player.getName() + " to " + warp.getOwner() + "'s \"" + warp.getName()
-										+ ".\"");
+								sender.sendMessage(ChatColor.GREEN + "I sent " + target_player.getName() + " to " + warp.getOwner() + "'s \"" + warp.getName() + ".\"");
 						}
 					} else if (player != null && (owner == null || player.getName().equals(owner)))
 						player.sendMessage(ChatColor.RED + "I couldn't find \"" + name + ".\"");
@@ -4592,8 +4447,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							sender_name = player.getName();
 						if (teleport(target_player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before " + sender_name
 								+ " teleported you elsewhere.", "", null, target_player.getLocation()), new UltraWarp("God", "coordinates", false, false,
-								"&aThis is the spot you were at when you were teleported by " + player.getName() + ".", "", null, target_player.getLocation()),
-								false, sender)) {
+								"&aThis is the spot you were at when you were teleported by " + player.getName() + ".", "", null, target_player.getLocation()), false, sender)) {
 							target_player.sendMessage(ChatColor.GREEN + sender_name + " teleported you to " + final_destination_player.getName() + ".");
 							sender.sendMessage(ChatColor.GREEN + "I sent " + target_player.getName() + " to " + final_destination_player.getName() + ".");
 						}
@@ -4603,8 +4457,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 								sender.sendMessage(ChatColor.RED + offline_player.getName() + " is not online right now.");
 								return;
 							}
-						sender.sendMessage(ChatColor.RED + "Sorry, but I've never seen anyone with a name starting with \"" + parameters[0]
-								+ "\" come on this server.");
+						sender.sendMessage(ChatColor.RED + "Sorry, but I've never seen anyone with a name starting with \"" + parameters[0] + "\" come on this server.");
 					}
 				} else
 					sender.sendMessage(ChatColor.RED + "You forgot to tell me which player you want me to warp " + target_player.getName() + " to!");
@@ -4639,8 +4492,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					warps.remove(i);
 			// set the new home
 			warps.add(new UltraWarp(owner, "home", false, true, "&aWelcome home, " + owner + ". We have awaited your return.",
-					"&cYou're not allowed to just warp to other people's homes! The nerve!", new String[0], player.getLocation().getX(), player.getLocation()
-							.getY(), player.getLocation().getZ(), player.getLocation().getPitch(), player.getLocation().getYaw(), player.getWorld()));
+					"&cYou're not allowed to just warp to other people's homes! The nerve!", new String[0], player.getLocation().getX(), player.getLocation().getY(), player
+							.getLocation().getZ(), player.getLocation().getPitch(), player.getLocation().getYaw(), player.getWorld()));
 			if (autosave_warps)
 				saveTheWarps(sender, false);
 			if (owner.equals(player.getName()))
@@ -4674,8 +4527,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		String warp_message = spawn_messages_by_world.get(player.getWorld());
 		if (warp_message == null)
 			warp_message = ChatColor.GREEN + "Welcome to " + player.getWorld().getWorldFolder().getName() + ", " + player.getName() + ".";
-		teleport(player, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before you teleported to " + world_name + "'s spawn point.", player
-				.getLocation()), new UltraWarp(warp_message, player.getWorld().getSpawnLocation()), true, null);
+		teleport(player, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before you teleported to " + world_name + "'s spawn point.", player.getLocation()),
+				new UltraWarp(warp_message, player.getWorld().getSpawnLocation()), true, null);
 	}
 
 	private void switchList(CommandSender sender) {
@@ -4815,8 +4668,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (my_player.getName().toLowerCase().startsWith(parameters[0].toLowerCase()) && !my_player.equals(player))
 				target_player = my_player;
 		// teleport the player to him/her or say it can't be done
-		if (target_player != null
-				&& (blocked_players.get(target_player.getName()) == null || !blocked_players.get(target_player.getName()).contains(player.getName()))) {
+		if (target_player != null && (blocked_players.get(target_player.getName()) == null || !blocked_players.get(target_player.getName()).contains(player.getName()))) {
 			if (!getSettings(player.getName()).must_request_to || player.hasPermission("myultrawarps.admin")
 					|| (from_teleport_requests.get(player.getName()) != null && from_teleport_requests.get(player.getName()).contains(target_player.getName()))) {
 				// remove any to teleportation requests from the target player
@@ -4826,13 +4678,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				while (requesting_players.contains(target_player.getName()))
 					requesting_players.remove(target_player.getName());
 				from_teleport_requests.put(player.getName(), requesting_players);
-				if (teleport(player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you teleported to "
-						+ target_player.getName() + ".", "", null, player.getLocation()), new UltraWarp("God", "coordinates", false, false,
-						"&aThis is the spot you were at when you teleported to " + target_player.getName() + ".", "", null, target_player.getLocation()),
-						false, target_player)) {
-					if (player.getName().toLowerCase().startsWith("a") || player.getName().toLowerCase().startsWith("e")
-							|| player.getName().toLowerCase().startsWith("i") || player.getName().toLowerCase().startsWith("o")
-							|| player.getName().toLowerCase().startsWith("u"))
+				if (teleport(player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you teleported to " + target_player.getName()
+						+ ".", "", null, player.getLocation()), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at when you teleported to "
+						+ target_player.getName() + ".", "", null, target_player.getLocation()), false, target_player)) {
+					if (player.getName().toLowerCase().startsWith("a") || player.getName().toLowerCase().startsWith("e") || player.getName().toLowerCase().startsWith("i")
+							|| player.getName().toLowerCase().startsWith("o") || player.getName().toLowerCase().startsWith("u"))
 						player.sendMessage(ChatColor.GREEN + "You found an " + target_player.getName() + "!");
 					else
 						player.sendMessage(ChatColor.GREEN + "You found a " + target_player.getName() + "!");
@@ -4848,8 +4698,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				to_teleport_requests.put(target_player.getName(), requesting_players);
 			}
 		} else if (target_player != null && blocked_players.get(target_player.getName()).contains(player.getName()))
-			player.sendMessage(ChatColor.RED + "Sorry, but " + target_player.getName()
-					+ " has blocked you. You can't send them teleportation requests anymore.");
+			player.sendMessage(ChatColor.RED + "Sorry, but " + target_player.getName() + " has blocked you. You can't send them teleportation requests anymore.");
 		else if (target_player == null)
 			if (player.getName().toLowerCase().startsWith(parameters[0].toLowerCase()))
 				player.sendMessage(ChatColor.RED + "You can't teleport to yourself! That makes no sense!");
@@ -4862,11 +4711,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Location target_location = null, lower_location = null;
 		for (int i = 0; i < 257; i++) {
 			Location temp1 =
-					new Location(player.getWorld(), player.getLocation().getBlockX() + 0.5, i, player.getLocation().getBlockZ() + 0.5, player.getLocation()
-							.getYaw(), player.getLocation().getPitch());
+					new Location(player.getWorld(), player.getLocation().getBlockX() + 0.5, i, player.getLocation().getBlockZ() + 0.5, player.getLocation().getYaw(), player
+							.getLocation().getPitch());
 			Location temp2 =
-					new Location(player.getWorld(), player.getLocation().getBlockX() + 0.5, i + 1, player.getLocation().getBlockZ() + 0.5, player.getLocation()
-							.getYaw(), player.getLocation().getPitch());
+					new Location(player.getWorld(), player.getLocation().getBlockX() + 0.5, i + 1, player.getLocation().getBlockZ() + 0.5, player.getLocation().getYaw(),
+							player.getLocation().getPitch());
 			// non-solid blocks: air=0, sapling=6, bed=26, powered rail=27, detector rail=28, cobweb=30, tall grass=31, dead bush=32, flower=37, rose=38, brown
 			// mushroom=39, red mushroom=40, torch=50, fire=51, redstone wire=55, wheat=59, floor sign=63, wooden door=64, ladder=65, unpowered rail=66, wall
 			// sign=68, lever=69, stone pressure plate=70, iron door=71, wooden pressure plate=72, "off" redstone torch=75, "on" redstone torch=76, stone
@@ -4875,34 +4724,34 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// head=144
 			if (temp1.getBlock() != null
 					&& temp2.getBlock() != null
-					&& !(temp1.getBlock().getTypeId() == 0 || temp1.getBlock().getTypeId() == 6 || temp1.getBlock().getTypeId() == 26
-							|| temp1.getBlock().getTypeId() == 27 || temp1.getBlock().getTypeId() == 28 || temp1.getBlock().getTypeId() == 30
-							|| temp1.getBlock().getTypeId() == 31 || temp1.getBlock().getTypeId() == 32 || temp1.getBlock().getTypeId() == 37
-							|| temp1.getBlock().getTypeId() == 38 || temp1.getBlock().getTypeId() == 39 || temp1.getBlock().getTypeId() == 40
-							|| temp1.getBlock().getTypeId() == 50 || temp1.getBlock().getTypeId() == 64 || temp1.getBlock().getTypeId() == 65
-							|| temp1.getBlock().getTypeId() == 66 || temp1.getBlock().getTypeId() == 68 || temp1.getBlock().getTypeId() == 69
-							|| temp1.getBlock().getTypeId() == 70 || temp1.getBlock().getTypeId() == 71 || temp1.getBlock().getTypeId() == 72
-							|| temp1.getBlock().getTypeId() == 75 || temp1.getBlock().getTypeId() == 76 || temp1.getBlock().getTypeId() == 77
-							|| temp1.getBlock().getTypeId() == 78 || temp1.getBlock().getTypeId() == 83 || temp1.getBlock().getTypeId() == 90
-							|| temp1.getBlock().getTypeId() == 93 || temp1.getBlock().getTypeId() == 94 || temp1.getBlock().getTypeId() == 104
-							|| temp1.getBlock().getTypeId() == 105 || temp1.getBlock().getTypeId() == 111 || temp1.getBlock().getTypeId() == 115
-							|| temp1.getBlock().getTypeId() == 119 || temp1.getBlock().getTypeId() == 131 || temp1.getBlock().getTypeId() == 132
-							|| temp1.getBlock().getTypeId() == 140 || temp1.getBlock().getTypeId() == 141 || temp1.getBlock().getTypeId() == 142
-							|| temp1.getBlock().getTypeId() == 143 || temp1.getBlock().getTypeId() == 144)
-					&& (temp2.getBlock().getTypeId() == 0 || temp2.getBlock().getTypeId() == 6 || temp2.getBlock().getTypeId() == 26
-							|| temp2.getBlock().getTypeId() == 27 || temp2.getBlock().getTypeId() == 28 || temp2.getBlock().getTypeId() == 30
-							|| temp2.getBlock().getTypeId() == 31 || temp2.getBlock().getTypeId() == 32 || temp2.getBlock().getTypeId() == 37
-							|| temp2.getBlock().getTypeId() == 38 || temp2.getBlock().getTypeId() == 39 || temp2.getBlock().getTypeId() == 40
-							|| temp2.getBlock().getTypeId() == 50 || temp2.getBlock().getTypeId() == 64 || temp2.getBlock().getTypeId() == 65
-							|| temp2.getBlock().getTypeId() == 66 || temp2.getBlock().getTypeId() == 68 || temp2.getBlock().getTypeId() == 69
-							|| temp2.getBlock().getTypeId() == 70 || temp2.getBlock().getTypeId() == 71 || temp2.getBlock().getTypeId() == 72
-							|| temp2.getBlock().getTypeId() == 75 || temp2.getBlock().getTypeId() == 76 || temp2.getBlock().getTypeId() == 77
-							|| temp2.getBlock().getTypeId() == 78 || temp2.getBlock().getTypeId() == 83 || temp2.getBlock().getTypeId() == 90
-							|| temp2.getBlock().getTypeId() == 93 || temp2.getBlock().getTypeId() == 94 || temp2.getBlock().getTypeId() == 104
-							|| temp2.getBlock().getTypeId() == 105 || temp2.getBlock().getTypeId() == 111 || temp2.getBlock().getTypeId() == 115
-							|| temp2.getBlock().getTypeId() == 119 || temp2.getBlock().getTypeId() == 131 || temp2.getBlock().getTypeId() == 132
-							|| temp2.getBlock().getTypeId() == 140 || temp2.getBlock().getTypeId() == 141 || temp2.getBlock().getTypeId() == 142
-							|| temp2.getBlock().getTypeId() == 143 || temp2.getBlock().getTypeId() == 144)) {
+					&& !(temp1.getBlock().getTypeId() == 0 || temp1.getBlock().getTypeId() == 6 || temp1.getBlock().getTypeId() == 26 || temp1.getBlock().getTypeId() == 27
+							|| temp1.getBlock().getTypeId() == 28 || temp1.getBlock().getTypeId() == 30 || temp1.getBlock().getTypeId() == 31
+							|| temp1.getBlock().getTypeId() == 32 || temp1.getBlock().getTypeId() == 37 || temp1.getBlock().getTypeId() == 38
+							|| temp1.getBlock().getTypeId() == 39 || temp1.getBlock().getTypeId() == 40 || temp1.getBlock().getTypeId() == 50
+							|| temp1.getBlock().getTypeId() == 64 || temp1.getBlock().getTypeId() == 65 || temp1.getBlock().getTypeId() == 66
+							|| temp1.getBlock().getTypeId() == 68 || temp1.getBlock().getTypeId() == 69 || temp1.getBlock().getTypeId() == 70
+							|| temp1.getBlock().getTypeId() == 71 || temp1.getBlock().getTypeId() == 72 || temp1.getBlock().getTypeId() == 75
+							|| temp1.getBlock().getTypeId() == 76 || temp1.getBlock().getTypeId() == 77 || temp1.getBlock().getTypeId() == 78
+							|| temp1.getBlock().getTypeId() == 83 || temp1.getBlock().getTypeId() == 90 || temp1.getBlock().getTypeId() == 93
+							|| temp1.getBlock().getTypeId() == 94 || temp1.getBlock().getTypeId() == 104 || temp1.getBlock().getTypeId() == 105
+							|| temp1.getBlock().getTypeId() == 111 || temp1.getBlock().getTypeId() == 115 || temp1.getBlock().getTypeId() == 119
+							|| temp1.getBlock().getTypeId() == 131 || temp1.getBlock().getTypeId() == 132 || temp1.getBlock().getTypeId() == 140
+							|| temp1.getBlock().getTypeId() == 141 || temp1.getBlock().getTypeId() == 142 || temp1.getBlock().getTypeId() == 143 || temp1.getBlock()
+							.getTypeId() == 144)
+					&& (temp2.getBlock().getTypeId() == 0 || temp2.getBlock().getTypeId() == 6 || temp2.getBlock().getTypeId() == 26 || temp2.getBlock().getTypeId() == 27
+							|| temp2.getBlock().getTypeId() == 28 || temp2.getBlock().getTypeId() == 30 || temp2.getBlock().getTypeId() == 31
+							|| temp2.getBlock().getTypeId() == 32 || temp2.getBlock().getTypeId() == 37 || temp2.getBlock().getTypeId() == 38
+							|| temp2.getBlock().getTypeId() == 39 || temp2.getBlock().getTypeId() == 40 || temp2.getBlock().getTypeId() == 50
+							|| temp2.getBlock().getTypeId() == 64 || temp2.getBlock().getTypeId() == 65 || temp2.getBlock().getTypeId() == 66
+							|| temp2.getBlock().getTypeId() == 68 || temp2.getBlock().getTypeId() == 69 || temp2.getBlock().getTypeId() == 70
+							|| temp2.getBlock().getTypeId() == 71 || temp2.getBlock().getTypeId() == 72 || temp2.getBlock().getTypeId() == 75
+							|| temp2.getBlock().getTypeId() == 76 || temp2.getBlock().getTypeId() == 77 || temp2.getBlock().getTypeId() == 78
+							|| temp2.getBlock().getTypeId() == 83 || temp2.getBlock().getTypeId() == 90 || temp2.getBlock().getTypeId() == 93
+							|| temp2.getBlock().getTypeId() == 94 || temp2.getBlock().getTypeId() == 104 || temp2.getBlock().getTypeId() == 105
+							|| temp2.getBlock().getTypeId() == 111 || temp2.getBlock().getTypeId() == 115 || temp2.getBlock().getTypeId() == 119
+							|| temp2.getBlock().getTypeId() == 131 || temp2.getBlock().getTypeId() == 132 || temp2.getBlock().getTypeId() == 140
+							|| temp2.getBlock().getTypeId() == 141 || temp2.getBlock().getTypeId() == 142 || temp2.getBlock().getTypeId() == 143 || temp2.getBlock()
+							.getTypeId() == 144)) {
 				lower_location = target_location;
 				target_location = temp2;
 			}
@@ -4940,8 +4789,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// unlink all switches associated with a warp
 			locateWarp(extra_param, sender);
 			if (owner != null) {
-				if (player == null || (player.getName().equals(owner)) || player.hasPermission("myultrawarps.unlink.other")
-						|| player.hasPermission("myultrawarps.admin")) {
+				if (player == null || (player.getName().equals(owner)) || player.hasPermission("myultrawarps.unlink.other") || player.hasPermission("myultrawarps.admin")) {
 					// locate the switches as specified and delete them
 					for (int i = 0; i < switches.size(); i++) {
 						if (switches.get(i).getWarpName().toLowerCase().startsWith(name.toLowerCase()) && switches.get(i).getWarpOwner().equals(owner)) {
@@ -4977,9 +4825,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				else
 					block_type = "pressure plate";
 				for (int i = 0; i < switches.size(); i++)
-					if (target_block.getX() == switches.get(i).getX() && target_block.getY() == switches.get(i).getY()
-							&& target_block.getZ() == switches.get(i).getZ() && switches.get(i).getWorld().equals(target_block.getWorld())
-							&& switches.get(i).getSwitchType().equals(block_type))
+					if (target_block.getX() == switches.get(i).getX() && target_block.getY() == switches.get(i).getY() && target_block.getZ() == switches.get(i).getZ()
+							&& switches.get(i).getWorld().equals(target_block.getWorld()) && switches.get(i).getSwitchType().equals(block_type))
 						index = i;
 				if (index != -1
 						&& (player.getName().equals(switches.get(index).getWarpOwner()) || player.hasPermission("myultrawarps.unlink.other") || player
@@ -5001,8 +4848,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				console.sendMessage(ChatColor.RED
 						+ "You need to specify the warp that you want to unlink all switches from because you can't point out a specific switch to me...'cause you're a console!");
 		} else if (player != null)
-			player.sendMessage(ChatColor.RED
-					+ "You can either point out a switch you want to unlink a warp from or specify a warp that I will unlink all switches from.");
+			player.sendMessage(ChatColor.RED + "You can either point out a switch you want to unlink a warp from or specify a warp that I will unlink all switches from.");
 		else
 			console.sendMessage(ChatColor.RED
 					+ "You need to specify the warp that you want to unlink all switches from because you can't point out a specific switch to me...'cause you're a console!");
@@ -5023,8 +4869,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				String warp_name = warp.getName();
 				if (!warp.getOwner().equals(player.getName()))
 					warp_name = warp.getOwner() + "'s " + warp.getName();
-				teleport(player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name + ".",
-						"", null, player.getLocation()), warp, true, null);
+				teleport(player, new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name + ".", "", null, player
+						.getLocation()), warp, true, null);
 			} else
 				player.sendMessage(colorCode(replaceAll(warp.getNoWarpMessage(), "[player]", player.getName())));
 		} else {
@@ -5046,9 +4892,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if (player != null) {
 				for (Player everyone : server.getOnlinePlayers()) {
 					if (player == null || !everyone.equals(player)) {
-						teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + player.getName()
-								+ " teleported everyone to them.", everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where "
-								+ player.getName() + " teleported everyone to them.", player.getLocation()), false, player);
+						teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + player.getName() + " teleported everyone to them.",
+								everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where " + player.getName() + " teleported everyone to them.",
+								player.getLocation()), false, player);
 						everyone.sendMessage(ChatColor.GREEN + player.getName() + " brought everyone to this location for something important.");
 					}
 				}
@@ -5077,8 +4923,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				} else
 					player.sendMessage(ChatColor.RED + "Sorry, but I can't see that far!");
 			} else
-				console.sendMessage(ChatColor.RED
-						+ "Please point out the place you want to teleport everyone. Oh, yeah. You still can't. You're still a console.");
+				console.sendMessage(ChatColor.RED + "Please point out the place you want to teleport everyone. Oh, yeah. You still can't. You're still a console.");
 		} else if (parameters[extra_param].equalsIgnoreCase("warp")) {
 			if (parameters.length >= extra_param + 2 && parameters[extra_param + 1] != null && !parameters[extra_param].equals("")) {
 				UltraWarp warp = locateWarp(extra_param + 1, sender);
@@ -5089,9 +4934,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							String sender_name = "someone";
 							if (player != null)
 								sender_name = player.getName();
-							teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + sender_name
-									+ " teleported everyone elsewhere.", everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where "
-									+ sender_name + " teleported everyone.", warp.getLocation()), false, sender);
+							teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + sender_name + " teleported everyone elsewhere.",
+									everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where " + sender_name + " teleported everyone.", warp
+									.getLocation()), false, sender);
 							if (sender_name.equals("someone"))
 								sender_name = "Someone";
 							everyone.sendMessage(ChatColor.GREEN + sender_name + " brought everyone to this location for something important.");
@@ -5123,9 +4968,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							String sender_name = "someone";
 							if (player != null)
 								sender_name = player.getName();
-							teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + sender_name
-									+ " teleported everyone elsewhere.", everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where "
-									+ sender_name + " teleported everyone.", target_player.getLocation()), false, sender);
+							teleport(everyone, new UltraWarp(ChatColor.GREEN + "This is the spot you were at before " + sender_name + " teleported everyone elsewhere.",
+									everyone.getLocation()), new UltraWarp(ChatColor.GREEN + "This is the spot where " + sender_name + " teleported everyone.", target_player
+									.getLocation()), false, sender);
 							if (sender_name.equals("someone"))
 								sender_name = "Someone";
 							everyone.sendMessage(ChatColor.GREEN + sender_name + " brought everyone to this location for something important.");
@@ -5145,13 +4990,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player = (Player) sender;
 		UltraWarp warp = locateWarp(extra_param, sender);
 		if (warp != null
-				&& (player == null || player.getName().equals(owner) || player.hasPermission("myultrawarps.warpinfo.other") || player
-						.hasPermission("myultrawarps.admin"))) {
+				&& (player == null || player.getName().equals(owner) || player.hasPermission("myultrawarps.warpinfo.other") || player.hasPermission("myultrawarps.admin"))) {
 			String info = warp.getSaveLine();
 			// insert ChatColor.WHITE at the end of warp and no warp messages
 			for (int i = 0; i < info.length(); i++) {
-				if (info.length() > i + warp.getWarpMessage().length()
-						&& info.substring(i, i + warp.getWarpMessage().length() + 1).equals(warp.getWarpMessage() + "\"")) {
+				if (info.length() > i + warp.getWarpMessage().length() && info.substring(i, i + warp.getWarpMessage().length() + 1).equals(warp.getWarpMessage() + "\"")) {
 					String previous_text = info.substring(0, i + warp.getWarpMessage().length());
 					String next_text = info.substring(i + warp.getWarpMessage().length());
 					info = previous_text + "&f" + next_text;
@@ -5261,9 +5104,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				message = ChatColor.GREEN + "&aWelcome to (" + Math.round(x) + ", " + Math.round(y) + ", " + Math.round(z) + ") in \"" + world_name + ".\"";
 			}
 			// save the player's current location before warping
-			teleport(player, new UltraWarp("&aThis is the spot you were at before you warped to (" + Math.round(x) + ", " + Math.round(y) + ", "
-					+ Math.round(z) + ")", player.getLocation()), new UltraWarp(message, new Location(world, (int) x + 0.5, (int) y, (int) z + 0.5, player
-					.getLocation().getYaw(), player.getLocation().getPitch())), true, null);
+			teleport(player, new UltraWarp("&aThis is the spot you were at before you warped to (" + Math.round(x) + ", " + Math.round(y) + ", " + Math.round(z) + ")", player
+					.getLocation()), new UltraWarp(message, new Location(world, (int) x + 0.5, (int) y, (int) z + 0.5, player.getLocation().getYaw(), player.getLocation()
+					.getPitch())), true, null);
 		} else if (world == null) {
 			// if it couldn't find the specified world
 			player.sendMessage(ChatColor.RED + "The world you specified doesn't exist.");
