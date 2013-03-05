@@ -97,9 +97,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	// TODO: reformulate the /to and /from config questions
 	// TODO: make /home on respawn configurable
-	// TODO: instead of making this weird HashMap<String, Object[]> for various settings, just make objects called SettingsGroup that contains the name of the
-	// group (which can be a player for individual settings), a boolean saying whether it's a group or a player, and all the settings data for them. We'll also
-	// need a method in it to get their settings
 	// TODO: make /trust
 	// TODO: make anti-spam filters for /to and /from
 	// TODO: make on-login info messages rollover
@@ -3601,7 +3598,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Player player = null;
 		if (sender instanceof Player)
 			player = (Player) sender;
-		Player online_target_player = null;
 		// determine if the warp or no warp message is being changed
 		boolean change_warp_message = true;
 		if (parameters[0].toLowerCase().startsWith("no"))
@@ -3611,25 +3607,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		if (player != null)
 			config_target = player.getName();
 		boolean target_is_group = false;
-		if (parameters[extra_param].equalsIgnoreCase("for")) {
-			config_target = parameters[extra_param + 1];
-			if (config_target.toLowerCase().startsWith("group:")) {
-				config_target = config_target.substring(6);
+		if (extra_param < parameters.length && parameters[extra_param].toLowerCase().startsWith("for:")) {
+			config_target = parameters[extra_param].substring(4);
+			if (config_target.toLowerCase().startsWith("\\[") && config_target.toLowerCase().endsWith("\\]")) {
+				config_target = config_target.substring(1, config_target.length() - 1);
 				target_is_group = true;
 			} else if (config_target.equalsIgnoreCase("global"))
 				config_target = "server";
-			else if (!config_target.equals("server")) {
-				for (Player my_player : server.getOnlinePlayers())
-					if (my_player.getName().toLowerCase().startsWith(config_target.toLowerCase())) {
-						config_target = my_player.getName();
-						online_target_player = my_player;
-					}
-				if (online_target_player == null)
-					for (OfflinePlayer my_player : server.getOfflinePlayers())
-						if (my_player.getName().toLowerCase().startsWith(config_target.toLowerCase()))
-							config_target = my_player.getName();
-			}
-			extra_param = extra_param + 2;
+			else if (!config_target.equals("server"))
+				config_target = getFullName(config_target);
+			extra_param++;
 		}
 		// read the new message
 		String new_message = "";
