@@ -6,15 +6,15 @@ import org.bukkit.World;
 
 public class UltraWarp {
 
-	private String owner, name, warp_message, no_warp_message, save_line;
-	private String[] listed_users;
-	private boolean listed, restricted;
-	private double x, y, z;
-	private float pitch, yaw;
-	private World world;
+	public String owner, name, warp_message, no_warp_message, save_line;
+	public String[] listed_users;
+	public boolean listed, restricted;
+	public double x, y, z;
+	public float pitch, yaw;
+	public World world;
 
-	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message,
-			String[] my_listed_users, double my_x, double my_y, double my_z, float my_pitch, float my_yaw, World my_world) {
+	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message, String[] my_listed_users,
+			double my_x, double my_y, double my_z, float my_pitch, float my_yaw, World my_world) {
 		owner = my_owner;
 		name = my_name;
 		listed = my_listed;
@@ -35,14 +35,12 @@ public class UltraWarp {
 			listed_string = "an unlisted";
 		if (restricted)
 			save_line =
-					owner + "'s warp \"" + name + "\" is " + listed_string + ", restricted warp at (" + x + ", " + y + ", " + z + ") in \""
-							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Prohibited users see \"" + no_warp_message
-							+ "\" while ";
+					owner + "'s warp \"" + name + "\" is " + listed_string + ", restricted warp at (" + x + ", " + y + ", " + z + ") in \"" + world.getWorldFolder().getName()
+							+ "\" aiming at (" + pitch + ", " + yaw + "). Prohibited users see \"" + no_warp_message + "\" while ";
 		else
 			save_line =
 					owner + "'s warp \"" + name + "\" is " + listed_string + ", unrestricted warp at (" + x + ", " + y + ", " + z + ") in \""
-							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Permitted users see \"" + warp_message
-							+ "\" while ";
+							+ world.getWorldFolder().getName() + "\" aiming at (" + pitch + ", " + yaw + "). Permitted users see \"" + warp_message + "\" while ";
 		if (listed_users == null)
 			listed_users = new String[0];
 		if (listed_users.length == 0)
@@ -75,7 +73,7 @@ public class UltraWarp {
 		// alternate of the alternate ending (for 1 listed user): [...]" while [listed_users[0]] sees "[warp_message or no_warp_message]".
 		// alternative to the alternate of the alternate ending (for no listed users): [...]" while other users may see "[warp_message or no_warp_message]".
 		owner = save_line.split("'s warp \"")[0];
-		name = save_line.substring(owner.length() + 9).split("\"")[0];
+		name = save_line.substring(owner.length() + 9).split("\" is ")[0];
 		String[] temp = save_line.split("listed, ");
 		if (temp[0].endsWith("un"))
 			listed = false;
@@ -161,27 +159,15 @@ public class UltraWarp {
 		}
 	}
 
-	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message,
-			String[] my_listed_users, Location location) {
-		this(my_owner, my_name, my_listed, my_restricted, my_warp_message, my_no_warp_message, my_listed_users, location.getX(), location.getY(), location
-				.getZ(), location.getPitch(), location.getYaw(), location.getWorld());
+	public UltraWarp(String my_owner, String my_name, boolean my_listed, boolean my_restricted, String my_warp_message, String my_no_warp_message, String[] my_listed_users,
+			Location location) {
+		this(my_owner, my_name, my_listed, my_restricted, my_warp_message, my_no_warp_message, my_listed_users, location.getX(), location.getY(), location.getZ(), location
+				.getPitch(), location.getYaw(), location.getWorld());
 	}
 
 	public UltraWarp(String warp_message, Location location) {
-		this("Sum1", "warp", false, false, warp_message, "No", null, location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw(),
-				location.getWorld());
-	}
-
-	public String getSaveLine() {
-		return save_line;
-	}
-
-	public String getOwner() {
-		return owner;
-	}
-
-	public String getName() {
-		return name;
+		this("Sum1", "warp", false, false, warp_message, "No", null, location.getX(), location.getY(), location.getZ(), location.getPitch(), location.getYaw(), location
+				.getWorld());
 	}
 
 	public String getColoredName() {
@@ -204,50 +190,6 @@ public class UltraWarp {
 			return ChatColor.DARK_RED + owner;
 		else
 			return ChatColor.GRAY + owner;
-	}
-
-	public boolean isListed() {
-		return listed;
-	}
-
-	public boolean isRestricted() {
-		return restricted;
-	}
-
-	public String getWarpMessage() {
-		return warp_message;
-	}
-
-	public String getNoWarpMessage() {
-		return no_warp_message;
-	}
-
-	public String[] getListedUsers() {
-		return listed_users;
-	}
-
-	public double getX() {
-		return x;
-	}
-
-	public double getY() {
-		return y;
-	}
-
-	public double getZ() {
-		return z;
-	}
-
-	public float getPitch() {
-		return pitch;
-	}
-
-	public float getYaw() {
-		return yaw;
-	}
-
-	public World getWorld() {
-		return world;
 	}
 
 	public Location getLocation() {

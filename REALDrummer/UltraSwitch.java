@@ -6,15 +6,15 @@ import org.bukkit.World;
 
 public class UltraSwitch {
 
-	private String warp_name, warp_owner, switch_type, save_line;
-	private double x, y, z, cost;
-	private int cooldown_time, max_uses;
-	private boolean global_cooldown;
-	private World world;
-	private String[] exempted_players;
+	public String warp_name, warp_owner, switch_type, save_line;
+	public double x, y, z, cost;
+	public int cooldown_time, max_uses;
+	public boolean global_cooldown;
+	public World world;
+	public String[] exempted_players;
 
-	public UltraSwitch(String my_warp_name, String my_warp_owner, String my_switch_type, int my_cooldown_time, int my_max_uses, boolean my_global_cooldown,
-			double my_cost, String[] my_exempted_players, double my_x, double my_y, double my_z, World my_world) {
+	public UltraSwitch(String my_warp_name, String my_warp_owner, String my_switch_type, int my_cooldown_time, int my_max_uses, boolean my_global_cooldown, double my_cost,
+			String[] my_exempted_players, double my_x, double my_y, double my_z, World my_world) {
 		warp_name = my_warp_name;
 		warp_owner = my_warp_owner;
 		switch_type = my_switch_type;
@@ -28,8 +28,8 @@ public class UltraSwitch {
 		z = my_z;
 		world = my_world;
 		save_line =
-				"The " + switch_type + " at (" + x + ", " + y + ", " + z + ") in \"" + world.getWorldFolder().getName() + "\" is linked to " + warp_owner
-						+ "'s warp \"" + warp_name + "\".";
+				"The " + switch_type + " at (" + x + ", " + y + ", " + z + ") in \"" + world.getWorldFolder().getName() + "\" is linked to " + warp_owner + "'s warp \""
+						+ warp_name + "\".";
 		if (cooldown_time > 0) {
 			if (max_uses != 1)
 				save_line += " It can be used " + max_uses + " times before ";
@@ -66,8 +66,7 @@ public class UltraSwitch {
 		} catch (NumberFormatException exception) {
 			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I got an error while trying to read the coordinates of this switch!");
 			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "save line: \"" + ChatColor.WHITE + save_line + ChatColor.DARK_RED + "\"");
-			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I read the coordiantes as " + ChatColor.WHITE + "(" + temp[0] + ", " + temp[1] + ", "
-					+ temp[2] + ").");
+			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I read the coordiantes as " + ChatColor.WHITE + "(" + temp[0] + ", " + temp[1] + ", " + temp[2] + ").");
 			exception.printStackTrace();
 			return;
 		}
@@ -97,15 +96,12 @@ public class UltraSwitch {
 			else if (temp[3].equals("everyone"))
 				global_cooldown = true;
 			else {
-				myUltraWarps.console.sendMessage(ChatColor.DARK_RED
-						+ "I got an error while trying to read whether or not the cooldown on this switch was global!");
+				myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I got an error while trying to read whether or not the cooldown on this switch was global!");
 				myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "save line: \"" + ChatColor.WHITE + save_line + ChatColor.DARK_RED + "\"");
 				myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I read the temp[3] as " + ChatColor.WHITE + temp[3] + ChatColor.DARK_RED + ".");
 				return;
 			}
-			cooldown_time =
-					myUltraWarps.translateStringtoTimeInms(save_line.substring(save_line.indexOf(" has to wait ") + 13, save_line
-							.indexOf("before using it again.")));
+			cooldown_time = myUltraWarps.translateStringtoTimeInms(save_line.substring(save_line.indexOf(" has to wait ") + 13, save_line.indexOf("before using it again.")));
 		} else {
 			warp_name = temp[1].substring(0, temp[1].length() - 2);
 			max_uses = -1;
