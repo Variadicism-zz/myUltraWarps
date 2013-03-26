@@ -1173,9 +1173,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 * @param text
 	 *            is the two-character String that this method analyzes to see whether or not it is a color code.
 	 * @param true_non_formatting_null_either
-	 *            is a Boolean that can have three values. <tt>true</tt> means that the color code must be non-formatting, e.g. "&a" (light green) or "&4" (dark
-	 *            red). <tt>false</tt> means that the color code must be formatting, e.g. "&k" for magic or "&l" for bold. <tt>null</tt> means that it can be
-	 *            either a formatting or non-formatting color code to return true.
+	 *            is a Boolean that can have three values. <b>true</b> means that the color code must be non-formatting, e.g. "&a" (light green) or "&4" (dark
+	 *            red). <b>false</b> means that the color code must be formatting, e.g. "&k" for magic or "&l" for bold. <b>null</b> means that it can be either
+	 *            a formatting or non-formatting color code to return true.
 	 * @param true_non_anti_null_either
 	 *            works similarly to true_non_formatting_null_either, but for anti-color codes vs. normal color codes. "true" means that the color code must
 	 *            <i>not</i> be an anti-color code.
@@ -1213,13 +1213,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 *            is given to a <tt>config.txt</tt> question.
 	 * @param current_status_is_true_message
 	 *            is for use with the <tt>config.txt</tt> questions only; it allows this method to compare <b>current_status_line</b> to this message to
-	 *            determine whether or not the current status of the configuration handled by this config question is <tt>true</tt> or <tt>false</tt>.
-	 * @return <b>for chat responses:</b> <tt>true</tt> if the response matches one of the words or phrases in <tt>yeses</tt>, <tt>false</tt> if the response
-	 *         matches one of the words or phrases in <tt>nos</tt>, or <tt>null</tt> if the message did not seem to answer the question. <b>for
-	 *         <tt>config.txt</tt> question responses:</b> <tt>true</tt> if the answer to the question matches one of the words or phrases in <tt>yeses</tt>,
-	 *         <tt>false</tt> if the answer to the question matches one of the words or phrases in <tt>nos</tt>. If there is no answer to the question or the
-	 *         answer does not match a "yes" or a "no" response, it will return <tt>true</tt> if <b><tt>current_status_line</tt></b> matches <b>
-	 *         <tt>current_status_is_true_message</tt></b> or <tt>false</tt> if it does not.
+	 *            determine whether or not the current status of the configuration handled by this config question is <b>true</b> or <b>false</b>.
+	 * @return <b>for chat responses:</b> <b>true</b> if the response matches one of the words or phrases in <tt>yeses</tt>, <b>false</b> if the response
+	 *         matches one of the words or phrases in <tt>nos</tt>, or <b>null</b> if the message did not seem to answer the question. <b>for
+	 *         <tt>config.txt</tt> question responses:</b> <b>true</b> if the answer to the question matches one of the words or phrases in <tt>yeses</tt>,
+	 *         <b>false</b> if the answer to the question matches one of the words or phrases in <tt>nos</tt>. If there is no answer to the question or the
+	 *         answer does not match a "yes" or a "no" response, it will return <b>true</b> if <b><tt>current_status_line</tt></b> matches <b>
+	 *         <tt>current_status_is_true_message</tt></b> or <b>false</b> if it does not.
 	 */
 	private static Boolean getResponse(CommandSender sender, String unformatted_response, String current_status_line, String current_status_is_true_message) {
 		boolean said_yes = false, said_no = false;
@@ -1265,11 +1265,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 * messages in the parameters when needed, i.e. at the end of the command parameters or when it reaches another parameter such as "giveto:[player]".
 	 * 
 	 * @param warp_message
-	 *            is the warp message that was being read in the command; it will be <tt>null</tt> if the warp message was not given in the current part of the
+	 *            is the warp message that was being read in the command; it will be <b>null</b> if the warp message was not given in the current part of the
 	 *            command.
 	 * @param no_warp_message
-	 *            is the no warp message that was being read in the command; it will be <tt>null</tt> if the no warp message was not given in the current part
-	 *            of the command.
+	 *            is the no warp message that was being read in the command; it will be <b>null</b> if the no warp message was not given in the current part of
+	 *            the command.
 	 * @param true_warp_name
 	 *            is the name of the warp which this message is associated with.
 	 * @param true_owner_name
@@ -1526,23 +1526,23 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 * @param player
 	 *            is the Player being teleported.
 	 * @param from
-	 *            is the place where <b><tt>player</b></tt> began. If <b><tt>from</b></tt> is not <tt>null</tt>, it will be used to record this teleportation
+	 *            is the place where <b><tt>player</b></tt> began. If <b><tt>from</b></tt> is not <b>null</b>, it will be used to record this teleportation
 	 *            event in <b><tt>player</b></tt>'s warp history.
 	 * @param to
-	 *            is the place <b><tt>player</b></tt> is being teleported to. If <b><tt>from</b></tt> is not null, it will be used to record this teleportation
-	 *            event in <b> <tt>player</b></tt>'s warp history in addition to being the target of <b><tt>player</b></tt>'s teleportation.
+	 *            is the place <b><tt>player</b></tt> is being teleported to. If <b><tt>from</b></tt> is not <b>null</b>, it will be used to record this
+	 *            teleportation event in <b> <tt>player</b></tt>'s warp history in addition to being the target of <b><tt>player</b></tt>'s teleportation.
 	 * @param send_warp_message
 	 *            designates whether or not this method should send <b><tt>player</b></tt> the warp message designated by the "to" UltraWarp. The value of this
-	 *            parameter is <tt>false</tt> when the message to be sent to <b><tt>player</b></tt> is different from the message to be saved in <b>
+	 *            parameter is <b>false</b> when the message to be sent to <b><tt>player</b></tt> is different from the message to be saved in <b>
 	 *            <tt>player</b></tt>'s warp history.
 	 * @param non_teleporting_player
 	 *            is used when there is a second Player or <tt>console</tt> involved in the teleportation either as the executor of the teleportation command or
 	 *            the target of the teleportation. This is used to allow Players with admin permissions or the console to teleport players without interference
 	 *            from this plugin because <b><tt>player</b></tt>'s warping cool down time is not up or for any other reasons.
-	 * @return <tt>true</tt> if the teleportation was successful and <tt>false</tt> if <b><tt>player</b></tt> does not have permission or must wait for their
+	 * @return <b>true</b> if the teleportation was successful and <b>false</b> if <b><tt>player</b></tt> does not have permission or must wait for their
 	 *         cooldown time to expire
 	 */
-	public boolean teleport(Player player, UltraWarp from, UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
+	public boolean teleport(final Player player, UltraWarp from, final UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
 		SettingsSet set = getSettings(player.getName());
 		// stop here if the cooldown timer has not finished
 		if (cooling_down_players.containsKey(player.getName()) && !player.hasPermission("myultrawarps.admin")
@@ -1558,8 +1558,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			return false;
 		}
 		// teleport the player
-		to.getLocation().getChunk().load();
-		player.teleport(to.getLocation());
+		server.getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+			@Override
+			public void run() {
+				player.teleport(to.getLocation());
+			}
+		}, 0);
 		if (send_warp_message && !to.warp_message.equals(""))
 			player.sendMessage(colorCode(to.warp_message.replaceAll("\\[player\\]", player.getName())));
 		if (from != null) {
@@ -1831,8 +1835,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	/**
 	 * This listener method reads chat messages and determines whether they are "yes" or "no" answers to teleportation requests using the
 	 * {@link #getResponse(CommandSender, String, String, String) getResponse()} method. It gives <i>/to</i> teleportation requests priority over <i>/from</i>
-	 * teleportation requests -- admittedly arbitrarily. If the {@link #getResponse(CommandSender, String, String, String) getResponse()} method returns
-	 * <tt>null</tt>, it will assume that the message is not meant to answer the teleportation request and will allow the chat message to pass to the normal
+	 * teleportation requests -- admittedly arbitrarily. If the {@link #getResponse(CommandSender, String, String, String) getResponse()} method returns <b>
+	 * <tt>null</tt></b>, it will assume that the message is not meant to answer the teleportation request and will allow the chat message to pass to the normal
 	 * chat channels. The priority of this listener is { @link org.bukkit.EventPriority LOWEST} in order to ensure that this method is read before any
 	 * chat-related processes. If this message is in fact an answer to a teleportation request, the message must not be sent to the normal chat channels. The
 	 * chat event will be cancelled.
@@ -2406,10 +2410,19 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				} else if (parsing.equals("individual")) {
 					// if it's the beginning of a set, get the player's name; otherwise, we're probably in the middle of a set, so just use the parsing_player
 					// that's already there
-					if (save_line.split(":").length > 1 && !save_line.split(":")[0].contains(" ")) {
-						parsing_player = save_line.split(":")[0];
-						save_line = save_line.split(":")[1];
-					}
+					if (!save_line.split(":")[0].contains(" "))
+						if (save_line.endsWith(":")) {
+							parsing_player = save_line.substring(0, save_line.length() - 1);
+							save_line = in.readLine();
+						}
+						// this part is to make sure reading the config works even if someone made an error when they were typing in the config and put a
+						// settings line on the same line as the group's name line
+						else if (save_line.split(":").length > 1) {
+							parsing_player = save_line.split(":")[0];
+							save_line = save_line.split(":")[1];
+							while (save_line.startsWith(" "))
+								save_line = save_line.substring(1);
+						}
 					if (parsing_player != null && !parsing_player.equals("") && !parsing_player.equals("1mAnExampl3")) {
 						SettingsSet player_set = settings.get(parsing_player);
 						// if a SettingsSet for this group doesn't exist yet, start a new one
@@ -2430,7 +2443,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							save_line = save_line.substring(1);
 						if (save_line.startsWith("Do you want " + parsing_player + " to automatically teleport to their home when they respawn?"))
 							player_set =
-									player_set.setHomeOnDeath(!getResponse(sender, save_line.substring(70 + parsing_player.length()), in.readLine(), "Right now, "
+									player_set.setHomeOnDeath(!getResponse(sender, save_line.substring(71 + parsing_player.length()), in.readLine(), "Right now, "
 											+ parsing_player + " automatically teleports home after they die."));
 						else if (save_line.toLowerCase().startsWith("default warp message: "))
 							player_set = player_set.setDefaultWarpMessage(save_line.substring(22));
@@ -2594,8 +2607,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 *            myUltraWarps is disabled and this method is called, <tt>console</tt> is used as <tt><b>sender</b></tt>.
 	 * @param display_message
 	 *            designates whether or not this method should display confirmation messages at its finish. If this method is called to refresh the
-	 *            <tt>warps.txt</tt> after loading the warps data, this parameter will be <tt>false</tt>. If this method is called using a command or when
-	 *            myUltraWarps is disabled, this parameter will be <tt>true</tt>.
+	 *            <tt>warps.txt</tt> after loading the warps data, this parameter will be <b>false</b>. If this method is called using a command or when
+	 *            myUltraWarps is disabled, this parameter will be <b>true</b>.
 	 */
 	private void saveTheWarps(CommandSender sender, boolean display_message) {
 		// check the warps file
