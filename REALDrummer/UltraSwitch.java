@@ -3,30 +3,43 @@ package REALDrummer;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
 public class UltraSwitch {
 
+	// sign post=63, wall sign=68, lever=69, stone pressure plate=70, wooden pressure plate=72, stone button=77, wooden button = 143, light weighted pressure
+	// plate = 147, heavy weighted pressure plate = 148
+	private static final Object[][] switch_types = { { 63, "sign" }, { 68, "sign" }, { 69, "lever" }, { 70, "pressure plate" }, { 72, "pressure plate" }, { 77, "button" },
+			{ 143, "button" } };
+	public Block block;
 	public String warp_name, warp_owner, switch_type, save_line;
-	public double x, y, z, cost;
-	public int cooldown_time, max_uses;
+	public double cost;
+	public Location location;
+	public int cooldown_time, max_uses, x, y, z;
 	public boolean global_cooldown;
 	public World world;
 	public String[] exempted_players;
 
-	public UltraSwitch(String my_warp_name, String my_warp_owner, String my_switch_type, int my_cooldown_time, int my_max_uses, boolean my_global_cooldown, double my_cost,
-			String[] my_exempted_players, double my_x, double my_y, double my_z, World my_world) {
+	public UltraSwitch(String my_warp_name, String my_warp_owner, Block my_block, int my_cooldown_time, int my_max_uses, boolean my_global_cooldown, double my_cost,
+			String[] my_exempted_players) {
 		warp_name = my_warp_name;
 		warp_owner = my_warp_owner;
-		switch_type = my_switch_type;
+		block = my_block;
+		switch_type = getSwitchType(block);
+		if (switch_type == null) {
+			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I couldn't find the switch type for this block!");
+			myUltraWarps.console.sendMessage(ChatColor.WHITE + block.toString());
+		}
 		cooldown_time = my_cooldown_time;
 		max_uses = my_max_uses;
 		global_cooldown = my_global_cooldown;
 		cost = my_cost;
 		exempted_players = my_exempted_players;
-		x = my_x;
-		y = my_y;
-		z = my_z;
-		world = my_world;
+		location = block.getLocation();
+		x = location.getBlockX();
+		y = location.getBlockY();
+		z = location.getBlockZ();
+		world = location.getWorld();
 		save_line =
 				"The " + switch_type + " at (" + x + ", " + y + ", " + z + ") in \"" + world.getWorldFolder().getName() + "\" is linked to " + warp_owner + "'s warp \""
 						+ warp_name + "\".";
@@ -46,8 +59,8 @@ public class UltraSwitch {
 	public UltraSwitch(String my_save_line) {
 		// The [switch type] at ([x], [y], [z]) in "[world]" is linked to [owner]'s warp "[warp name]". (It can be used [max uses] times before [that
 		// player/everyone] has to wait [cooldown time] before using it again.)
-		// TODO: add: ([player1, player2, and player3] are exempted from all charges and restrictions.) (It [costs/gives] players [money] [economy currency]
-		// (and [minor] [economy minor currency]) to use it.)
+		// TODO: add: (It [costs/gives] (everyone except [player1, player2, and players3]) [money] [economy currency] (and [minor] [economy minor currency]) to
+		// use it.)
 		save_line = my_save_line;
 		// read the save line
 		if (save_line.substring(4, 5).equals("b"))
@@ -60,9 +73,10 @@ public class UltraSwitch {
 			switch_type = "sign";
 		String[] temp = save_line.substring(save_line.indexOf('(') + 1, save_line.indexOf(')')).split(", ");
 		try {
-			x = Double.parseDouble(temp[0]);
-			y = Double.parseDouble(temp[1]);
-			z = Double.parseDouble(temp[2]);
+			// we have to check for Doubles, not Integers, and (int) them to make the switches.txt backwards-compatible
+			x = (int) Double.parseDouble(temp[0]);
+			y = (int) Double.parseDouble(temp[1]);
+			z = (int) Double.parseDouble(temp[2]);
 		} catch (NumberFormatException exception) {
 			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "I got an error while trying to read the coordinates of this switch!");
 			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "save line: \"" + ChatColor.WHITE + save_line + ChatColor.DARK_RED + "\"");
@@ -76,8 +90,10 @@ public class UltraSwitch {
 			myUltraWarps.console.sendMessage(ChatColor.DARK_RED + "save line: \"" + ChatColor.WHITE + save_line + ChatColor.DARK_RED + "\"");
 			return;
 		}
+		location = new Location(world, x, y, z);
+		block = location.getBlock();
 		temp = save_line.split("'s warp \"");
-		warp_owner = temp[0].substring(save_line.indexOf(" is linked to ") + 15);
+		warp_owner = temp[0].substring(save_line.indexOf(" is linked to ") + 14);
 		if (save_line.contains("\". It can be used ")) {
 			temp = temp[1].split("\". It can be used ");
 			warp_name = temp[0];
@@ -110,59 +126,10 @@ public class UltraSwitch {
 		}
 	}
 
-	public String getSaveLine() {
-		return save_line;
-	}
-
-	public String getWarpName() {
-		return warp_name;
-	}
-
-	public String getWarpOwner() {
-		return warp_owner;
-	}
-
-	public String getSwitchType() {
-		return switch_type;
-	}
-
-	public int getCooldownTime() {
-		return cooldown_time;
-	}
-
-	public int getMaxUses() {
-		return max_uses;
-	}
-
-	public boolean hasAGlobalCooldown() {
-		return global_cooldown;
-	}
-
-	public double getCost() {
-		return cost;
-	}
-
-	public String[] getExemptedPlayers() {
-		return exempted_players;
-	}
-
-	public double getX() {
-		return x;
-	}
-
-	public double getY() {
-		return y;
-	}
-
-	public double getZ() {
-		return z;
-	}
-
-	public World getWorld() {
-		return world;
-	}
-
-	public Location getLocation() {
-		return new Location(world, x, y, z);
+	public static String getSwitchType(Block block) {
+		for (Object[] type : switch_types)
+			if ((Integer) type[0] == block.getTypeId())
+				return (String) type[1];
+		return null;
 	}
 }

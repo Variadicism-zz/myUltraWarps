@@ -31,6 +31,7 @@ import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -91,11 +92,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
-	// TODO FOR ALL PLUGINS: search for "getItemIdAndData" and take out any ".split(" ")"s in the arguments
 	// TODO FOR ALL PLUGINS: get rid of the "failed" boolean in saving and loading stuff
-	// TODO FOR ALL PLUGINS: change all the [String variable] = [String variable] + [String] to [String variable] += [String]
 	// TODO FOR ALL PLUGINS: on loading stuff, if the file didn't exist, don't say you loaded the stuff. That's a lie.
-	// TODO FOR ALL PLUGINS: search for "while (save_line != null)" and put "while (save_line.equals("")) save_line = in.readLine();" after all of them.
+	// TODO FOR ALL PLUGINS: search for "while (save_line != null)" and put
+	// "while (save_line != null && save_line.equals("")) save_line = in.readLine(); if (save_line == null) break;" after all of them.
 
 	// TODO trying to make temp.txt unmodifiable
 	// TODO: make /trust
@@ -107,15 +107,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	// TODO: /send request system
 	// TODO: make messages informing of non-default characteristics in a warp in /create
 
-	// DONE: change all [SettingsSet].[variable] = [something]; to [SettingsSet] = [SettingsSet].[setter]([variable]);
-	// DONE: reformulate the /to and /from config questions
-	// DONE: make /home on respawn configurable
-	// DONE: instead of making this weird HashMap<String, Object[]> for various settings, just make objects called SettingsGroup that contains the name of the
-	// group (which can be a player for individual settings), a boolean saying whether it's a group or a player, and all the settings data for them. We'll also
-	// need a method in it to get their settings
-	// DONE: changed check for myultrawarps.to permission for accepting /from requests to new permission "myultrawarps.from.accept"
-	// DONE: revamped the settings setup
-	// DONE: made changing max warps with a command only affect the target and not everything else below it that it applies to
+	// DONE: fixed no switch warping
+	// DONE: changed switch save lines to ints instead of doubles (still bw-compat)
+	// DONE: fixed infinite loop in /warpinfo with warps missing a no warp or warp message
+	// DONE: fixed ticket stuff
 
 	// plugin enable/disable and the command operator
 	/**
@@ -924,7 +919,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpsaround") || sender.hasPermission("myultrawarps.user") || sender
 					.hasPermission("myultrawarps.admin"))
 					&& parameters.length > 1)
-				warpsAround(1, sender, command);
+				warpsAround(1, sender);
 			else if (parameters.length > 1)
 				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/warps " + parameters[0].toLowerCase() + ChatColor.RED + ".");
 			else
@@ -934,7 +929,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			if ((!(sender instanceof Player) || sender.hasPermission("myultrawarps.warpsaround") || sender.hasPermission("myultrawarps.user") || sender
 					.hasPermission("myultrawarps.admin"))
 					&& parameters.length > 0)
-				warpsAround(0, sender, command);
+				warpsAround(0, sender);
 			else if (parameters.length > 0)
 				sender.sendMessage(ChatColor.RED + "Sorry, but you're not allowed to use " + ChatColor.GREEN + "/" + command.toLowerCase() + ChatColor.RED + ".");
 			else
@@ -1068,7 +1063,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		ArrayList<UltraWarp> possible_warps = new ArrayList<UltraWarp>();
 		ArrayList<Integer> possible_indexes = new ArrayList<Integer>();
 		for (int i = 0; i < warps.size(); i++)
-			if (owner == null || (player != null && owner.equals(player.getName())) || warps.get(i).name.equals(owner))
+			if (owner == null || (player != null && owner.equals(player.getName())) || warps.get(i).owner.equals(owner))
 				if (warps.get(i).name.toLowerCase().startsWith(name.toLowerCase())) {
 					possible_warps.add(warps.get(i));
 					possible_indexes.add(i);
@@ -1379,19 +1374,31 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 *            is the name of the user (or permissions-based group or "[server]") that we need the settings for.
 	 * @return the most specific SettingsSet that applies to <b><tt>player</b></tt>
 	 */
+	private SettingsSet getSettings(Player player) {
+		// prioritize by searching first for individual settings, then group settings if you can't find individual settings, the server-wide (global) settings
+		// if you can't find group settings
+		if (settings.get(player.getName()) != null)
+			return settings.get(player.getName());
+		if (use_group_settings && permissions != null && permissions.getPrimaryGroup(player) != null && settings.get("[" + permissions.getPrimaryGroup(player) + "]") != null)
+			return settings.get("[" + permissions.getPrimaryGroup(player) + "]");
+		if (settings.get("[server]") != null)
+			return settings.get("[server]");
+		// if by some bizzare occurrence the server settings don't exist, return a SettingsSet with the default settings
+		return new SettingsSet();
+	}
+
 	private SettingsSet getSettings(String player) {
 		// prioritize by searching first for individual settings, then group settings if you can't find individual settings, the server-wide (global) settings
 		// if you can't find group settings
 		if (settings.get(player) != null)
 			return settings.get(player);
-		else if (use_group_settings && permissions != null && permissions.getPrimaryGroup(player, null) != null
-				&& settings.get(permissions.getPrimaryGroup(player, null)) != null)
-			return settings.get(permissions.getPrimaryGroup(player, null));
-		else if (settings.get("[server]") != null)
+		if (use_group_settings && permissions != null && permissions.getPrimaryGroup(player, null) != null
+				&& settings.get("[" + permissions.getPrimaryGroup(player, null) + "]") != null)
+			return settings.get("[" + permissions.getPrimaryGroup(player, null) + "]");
+		if (settings.get("[server]") != null)
 			return settings.get("[server]");
 		// if by some bizzare occurrence the server settings don't exist, return a SettingsSet with the default settings
-		else
-			return new SettingsSet();
+		return new SettingsSet();
 	}
 
 	/**
@@ -1543,7 +1550,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 *         cooldown time to expire
 	 */
 	public boolean teleport(final Player player, UltraWarp from, final UltraWarp to, boolean send_warp_message, CommandSender non_teleporting_player) {
-		SettingsSet set = getSettings(player.getName());
+		SettingsSet set = getSettings(player);
 		// stop here if the cooldown timer has not finished
 		if (cooling_down_players.containsKey(player.getName()) && !player.hasPermission("myultrawarps.admin")
 				&& (non_teleporting_player == null || (non_teleporting_player instanceof Player && !non_teleporting_player.hasPermission("myultrawarps.admin")))) {
@@ -1630,7 +1637,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			// I would have it check when it's loading the temporary data concerning cooling down players, but the player needs to be online for me to check all
 			// their permissions, so I have to check it when they log on instead
 			if (cooling_down_players.containsKey(event.getPlayer().getName())
-					&& cooling_down_players.get(event.getPlayer().getName()) + getSettings(event.getPlayer().getName()).cooldown < Calendar.getInstance().getTimeInMillis())
+					&& cooling_down_players.get(event.getPlayer().getName()) + getSettings(event.getPlayer()).cooldown < Calendar.getInstance().getTimeInMillis())
 				cooling_down_players.remove(event.getPlayer().getName());
 		}
 	}
@@ -1644,8 +1651,10 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 */
 	@EventHandler
 	public void teleportToHomeOnRespawn(PlayerRespawnEvent event) {
-		if (!getSettings(event.getPlayer().getName()).home_on_death)
-			return;
+		if (!event.getPlayer().hasPermission("myultrawarps.respawnhome") && !event.getPlayer().hasPermission("myultrawarps.user")
+				&& !event.getPlayer().hasPermission("myultrawarps.admin"))
+			if (!getSettings(event.getPlayer()).home_on_death)
+				return;
 		UltraWarp home = null;
 		for (UltraWarp warp : warps)
 			if (warp.owner.equals(event.getPlayer().getName()) && warp.name.equals("home"))
@@ -1670,42 +1679,43 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			Block target_block = event.getClickedBlock();
 			UltraSwitch target = null;
 			UltraWarp warp_target = null;
-			// sign post=63, wall sign=68, lever=69, stone pressure plate=70,
-			// wooden pressure plate=72, stone button=77, wooden button = 143
-			if (target_block != null
-					&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
-							|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
-				for (UltraSwitch my_switch : switches)
-					if (target_block.getLocation().equals(my_switch.getLocation())
-							&& ((my_switch.getSwitchType().equals("pressure plate") && event.getAction().equals(Action.PHYSICAL)) || (!my_switch.getSwitchType().equals(
-									"pressure plate") && event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))) {
-						target = my_switch;
-						break;
-					}
-				if (target != null) {
-					// cancel the interaction event if you right-clicked a sign to make sure it doesn't make you place the block in your hand
-					if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
-						event.setCancelled(true);
-					for (UltraWarp warp : warps)
-						if (warp.owner.equals(target.getWarpOwner()) && warp.name.equals(target.getWarpName()))
-							warp_target = warp;
-					if (warp_target != null) {
-						boolean listed = false;
-						for (String listed_user : warp_target.listed_users)
-							if (listed_user.equals(event.getPlayer().getName()))
-								listed = true;
-						if (event.getPlayer().getName().equals(warp_target.owner) || (!warp_target.restricted && !listed) || (warp_target.restricted && listed)
-								|| event.getPlayer().hasPermission("myultrawarps.warptowarp.other") || event.getPlayer().hasPermission("myultrawarps.admin")) {
-							String warp_name = warp_target.name;
-							if (!warp_target.owner.equals(event.getPlayer().getName()))
-								warp_name = warp_target.owner + "'s " + warp_target.name;
-							teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name
-									+ ".", "", null, event.getPlayer().getLocation()), warp_target, true, null);
-						} else
-							event.getPlayer().sendMessage(colorCode(warp_target.no_warp_message.replaceAll("\\[player\\]", event.getPlayer().getName())));
-					}
+			if (target_block == null || UltraSwitch.getSwitchType(target_block) == null)
+				return;
+			for (UltraSwitch my_switch : switches)
+				if (target_block.getLocation().equals(my_switch.location)
+						&& ((my_switch.switch_type.equals("pressure plate") && event.getAction().equals(Action.PHYSICAL)) || (!my_switch.switch_type.equals("pressure plate") && event
+								.getAction().equals(Action.RIGHT_CLICK_BLOCK)))) {
+					target = my_switch;
+					break;
 				}
+			// if target is null, whatever switch they pressed wasn't linked to a warp
+			if (target == null)
+				return;
+			// cancel the interaction event if you right-clicked a sign to make sure it doesn't make you place the block in your hand
+			if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
+				event.setCancelled(true);
+			for (UltraWarp warp : warps)
+				if (warp.owner.equals(target.warp_owner) && warp.name.equals(target.warp_name))
+					warp_target = warp;
+			// if warp_target is null, that's a problem
+			if (warp_target == null) {
+				event.getPlayer().sendMessage(
+						ChatColor.RED + "Uh...the warp this switch was linked to seems to have disappeared without my knowledge. Sorry. Talk to your server admin.");
+				return;
 			}
+			boolean listed = false;
+			for (String listed_user : warp_target.listed_users)
+				if (listed_user.equals(event.getPlayer().getName()))
+					listed = true;
+			if (event.getPlayer().getName().equals(warp_target.owner) || (!warp_target.restricted && !listed) || (warp_target.restricted && listed)
+					|| event.getPlayer().hasPermission("myultrawarps.warptowarp.other") || event.getPlayer().hasPermission("myultrawarps.admin")) {
+				String warp_name = warp_target.name;
+				if (!warp_target.owner.equals(event.getPlayer().getName()))
+					warp_name = warp_target.owner + "'s " + warp_target.name;
+				teleport(event.getPlayer(), new UltraWarp("God", "coordinates", false, false, "&aThis is the spot you were at before you warped to " + warp_name + ".", "",
+						null, event.getPlayer().getLocation()), warp_target, true, null);
+			} else
+				event.getPlayer().sendMessage(colorCode(warp_target.no_warp_message.replaceAll("\\[player\\]", event.getPlayer().getName())));
 		}
 	}
 
@@ -1719,49 +1729,34 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 */
 	@EventHandler
 	public void playerBrokeASwitch(BlockBreakEvent event) {
-		double x = event.getBlock().getLocation().getX();
-		double y = event.getBlock().getLocation().getY();
-		double z = event.getBlock().getLocation().getZ();
-		World world = event.getBlock().getLocation().getWorld();
-		String type = "";
-		if (event.getBlock().getTypeId() == 63 || event.getBlock().getTypeId() == 68)
-			type = "sign";
-		else if (event.getBlock().getTypeId() == 69)
-			type = "lever";
-		else if (event.getBlock().getTypeId() == 70 || event.getBlock().getTypeId() == 72)
-			type = "pressure plate";
-		else if (event.getBlock().getTypeId() == 77 || event.getBlock().getTypeId() == 143)
-			type = "button";
-		if (!type.equals("")) {
+		if (warps != null && warps.size() > 0 && switches != null && switches.size() > 0 && UltraSwitch.getSwitchType(event.getBlock()) != null) {
 			for (int i = 0; i < switches.size(); i++)
-				if (switches.get(i).getX() == x && switches.get(i).getY() == y && switches.get(i).getZ() == z && switches.get(i).getWorld().equals(world)
-						&& switches.get(i).getSwitchType().equals(type)) {
+				if (switches.get(i).location.equals(event.getBlock().getLocation()) && switches.get(i).switch_type.equals(UltraSwitch.getSwitchType(event.getBlock()))) {
 					// if the user broke their own switch
 					if ((event.getPlayer().hasPermission("myultrawarps.unlink") || event.getPlayer().hasPermission("myultrawarps.user"))
-							&& switches.get(i).getWarpOwner().equals(event.getPlayer().getName())) {
-						event.getPlayer().sendMessage(ChatColor.GREEN + "You unlinked \"" + switches.get(i).getWarpName() + "\" from this " + type + ".");
+							&& switches.get(i).warp_owner.equals(event.getPlayer().getName())) {
+						event.getPlayer().sendMessage(
+								ChatColor.GREEN + "You unlinked \"" + switches.get(i).warp_name + "\" from this " + UltraSwitch.getSwitchType(event.getBlock()) + ".");
 						switches.remove(i);
 					} // if the switch was broken by an admin
 					else if (event.getPlayer().hasPermission("myultrawarps.unlink.other") || event.getPlayer().hasPermission("myultrawarps.admin")) {
 						event.getPlayer().sendMessage(
-								ChatColor.GREEN + "You unlinked " + switches.get(i).getWarpOwner() + "'s " + switches.get(i).getSwitchType() + " that was linked to \""
-										+ switches.get(i).getWarpName() + ".\"");
+								ChatColor.GREEN + "You unlinked " + switches.get(i).warp_owner + "'s " + switches.get(i).switch_type + " that was linked to \""
+										+ switches.get(i).warp_name + ".\"");
 						boolean owner_found = false;
 						for (Player player : server.getOnlinePlayers())
-							if (player.getName().equals(switches.get(i).getWarpOwner())) {
+							if (player.getName().equals(switches.get(i).warp_owner)) {
 								owner_found = true;
-								player.sendMessage(ChatColor.RED + event.getPlayer().getName() + " broke your " + switches.get(i).getSwitchType() + " at ("
-										+ (int) switches.get(i).getX() + ", " + (int) switches.get(i).getY() + ", " + (int) switches.get(i).getZ() + ") in \""
-										+ switches.get(i).getWorld().getName() + ".\"");
+								player.sendMessage(ChatColor.RED + event.getPlayer().getName() + " broke your " + switches.get(i).switch_type + " at (" + switches.get(i).x
+										+ ", " + switches.get(i).y + ", " + switches.get(i).z + ") in \"" + switches.get(i).world.getName() + ".\"");
 							}
 						if (!owner_found) {
-							ArrayList<String> messages = info_messages_for_players.get(switches.get(i).getWarpOwner());
+							ArrayList<String> messages = info_messages_for_players.get(switches.get(i).warp_owner);
 							if (messages == null)
 								messages = new ArrayList<String>();
-							messages.add(ChatColor.RED + event.getPlayer().getName() + " broke your " + switches.get(i).getSwitchType() + " at ("
-									+ (int) switches.get(i).getX() + ", " + (int) switches.get(i).getY() + ", " + (int) switches.get(i).getZ() + ") in \""
-									+ switches.get(i).getWorld().getName() + ".\"");
-							info_messages_for_players.put(switches.get(i).getWarpOwner(), messages);
+							messages.add(ChatColor.RED + event.getPlayer().getName() + " broke your " + switches.get(i).switch_type + " at (" + (int) switches.get(i).x + ", "
+									+ (int) switches.get(i).y + ", " + (int) switches.get(i).z + ") in \"" + switches.get(i).world.getName() + ".\"");
+							info_messages_for_players.put(switches.get(i).warp_owner, messages);
 						}
 						switches.remove(i);
 					} else {
@@ -1781,55 +1776,41 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 */
 	@EventHandler
 	public void explosionBrokeASwitch(EntityExplodeEvent event) {
-		for (int i = 0; i < event.blockList().size(); i++) {
-			double x = event.blockList().get(i).getLocation().getX();
-			double y = event.blockList().get(i).getLocation().getY();
-			double z = event.blockList().get(i).getLocation().getZ();
-			World world = event.blockList().get(i).getLocation().getWorld();
-			String type = "";
-			if (event.blockList().get(i).getTypeId() == 63 || event.blockList().get(i).getTypeId() == 68)
-				type = "sign";
-			else if (event.blockList().get(i).getTypeId() == 69)
-				type = "lever";
-			else if (event.blockList().get(i).getTypeId() == 70 || event.blockList().get(i).getTypeId() == 72)
-				type = "pressure plate";
-			else if (event.blockList().get(i).getTypeId() == 77 || event.blockList().get(i).getTypeId() == 143)
-				type = "button";
-			if (!type.equals("")) {
-				for (int j = 0; j < switches.size(); j++)
-					if (switches.get(j).getX() == x && switches.get(j).getY() == y && switches.get(j).getZ() == z && switches.get(j).getWorld().equals(world)
-							&& switches.get(j).getSwitchType().equals(type)) {
-						String cause;
-						if (event.getEntityType() == null)
-							cause = "Some genius trying to use a bed in the Nether";
-						else if (event.getEntityType().getName().equals("Creeper"))
-							cause = "A creeper";
-						else if (event.getEntityType().getName().equals("Fireball"))
-							cause = "A Ghast";
-						else if (event.getEntityType().getName().equals("PrimedTnt"))
-							cause = "A T.N.T. blast";
-						else
-							cause = "An explosion of some sort";
-						boolean owner_found = false;
-						for (Player player : server.getOnlinePlayers())
-							if (player.getName().equals(switches.get(j).getWarpOwner())) {
-								owner_found = true;
-								player.sendMessage(ChatColor.RED + "Your " + switches.get(j).getSwitchType() + " at (" + (int) switches.get(j).getX() + ", "
-										+ (int) switches.get(j).getY() + ", " + (int) switches.get(j).getZ() + ") in \"" + switches.get(j).getWorld().getName()
-										+ "\" linked to \"" + switches.get(j).getWarpName() + "\" was broken by " + cause + "!");
+		if (warps != null && warps.size() > 0 && switches != null && switches.size() > 0)
+			for (int i = 0; i < event.blockList().size(); i++)
+				if (UltraSwitch.getSwitchType(event.blockList().get(i)) != null) {
+					for (int j = 0; j < switches.size(); j++)
+						if (switches.get(j).location.equals(event.blockList().get(i).getLocation())
+								&& switches.get(j).switch_type.equals(UltraSwitch.getSwitchType(event.blockList().get(i)))) {
+							String cause = "An explosion of some sort";
+							if (event.getEntityType() == null)
+								cause = "Some genius trying to use a bed in the Nether";
+							else if (event.getEntityType() == EntityType.CREEPER)
+								cause = "A creeper";
+							else if (event.getEntityType() == EntityType.FIREBALL)
+								cause = "A Ghast";
+							else if (event.getEntityType() == EntityType.PRIMED_TNT)
+								cause = "A T.N.T. blast";
+							boolean owner_found = false;
+							for (Player player : server.getOnlinePlayers())
+								if (player.getName().equals(switches.get(j).warp_owner)) {
+									owner_found = true;
+									player.sendMessage(ChatColor.RED + "Your " + switches.get(j).switch_type + " at (" + switches.get(j).x + ", " + switches.get(j).y + ", "
+											+ switches.get(j).z + ") in \"" + switches.get(j).world.getName() + "\" linked to \"" + switches.get(j).warp_name
+											+ "\" was broken by " + cause + "!");
+									break;
+								}
+							if (!owner_found) {
+								ArrayList<String> messages = info_messages_for_players.get(switches.get(j).warp_owner);
+								if (messages == null)
+									messages = new ArrayList<String>();
+								messages.add(ChatColor.RED + cause + " broke your " + switches.get(j).switch_type + " at (" + switches.get(j).x + ", " + switches.get(j).y
+										+ ", " + switches.get(j).z + ") in \"" + switches.get(j).world.getName() + ".\"");
+								info_messages_for_players.put(switches.get(j).warp_owner, messages);
 							}
-						if (!owner_found) {
-							ArrayList<String> messages = info_messages_for_players.get(switches.get(j).getWarpOwner());
-							if (messages == null)
-								messages = new ArrayList<String>();
-							messages.add(ChatColor.RED + cause + " broke your " + switches.get(j).getSwitchType() + " at (" + (int) switches.get(j).getX() + ", "
-									+ (int) switches.get(j).getY() + ", " + (int) switches.get(j).getZ() + ") in \"" + switches.get(j).getWorld().getName() + ".\"");
-							info_messages_for_players.put(switches.get(j).getWarpOwner(), messages);
+							switches.remove(j);
 						}
-						switches.remove(j);
-					}
-			}
-		}
+				}
 	}
 
 	/**
@@ -1980,7 +1961,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		if (replacement == null)
 			replacement = new ArrayList<Location>();
 		replacement.add(event.getEntity().getLocation());
-		while (replacement.size() > getSettings(event.getEntity().getName()).death_history_length)
+		while (replacement.size() > getSettings(event.getEntity()).death_history_length)
 			replacement.remove(0);
 		console.sendMessage("death history length=" + replacement.size());
 		death_histories.put(event.getEntity().getName(), replacement);
@@ -2010,11 +1991,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			BufferedReader in = new BufferedReader(new FileReader(warps_file));
 			String save_line = in.readLine();
 			while (save_line != null) {
-				if (save_line.equals(""))
-					continue;
-				warps.add(new UltraWarp(save_line));
+				if (!save_line.equals(""))
+					warps.add(new UltraWarp(save_line));
 				save_line = in.readLine();
-				continue;
 			}
 			in.close();
 			if (warps.size() > 1) {
@@ -2109,9 +2088,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			BufferedReader in = new BufferedReader(new FileReader(switches_file));
 			String save_line = in.readLine();
 			while (save_line != null) {
-				if (save_line.equals(""))
-					continue;
-				switches.add(new UltraSwitch(save_line));
+				if (!save_line.equals(""))
+					switches.add(new UltraSwitch(save_line));
 				save_line = in.readLine();
 			}
 			in.close();
@@ -2132,9 +2110,9 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				first_switch = temp_switches.get(0);
 				delete_index = 0;
 				for (int j = 0; j < temp_switches.size(); j++) {
-					if (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) < 0
-							|| (temp_switches.get(j).getWarpName().compareToIgnoreCase(first_switch.getWarpName()) == 0 && temp_switches.get(j).getWarpOwner()
-									.compareToIgnoreCase(first_switch.getWarpOwner()) < 0)) {
+					if (temp_switches.get(j).warp_name.compareToIgnoreCase(first_switch.warp_name) < 0
+							|| (temp_switches.get(j).warp_name.compareToIgnoreCase(first_switch.warp_name) == 0 && temp_switches.get(j).warp_owner
+									.compareToIgnoreCase(first_switch.warp_owner) < 0)) {
 						first_switch = temp_switches.get(j);
 						delete_index = j;
 					}
@@ -2229,8 +2207,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			BufferedReader in = new BufferedReader(new FileReader(config_file));
 			String save_line = in.readLine(), parsing = "", parsing_group = null, parsing_player = null;
 			while (save_line != null) {
-				while (save_line.equals(""))
+				// skip empty lines
+				while (save_line != null && save_line.equals(""))
 					save_line = in.readLine();
+				if (save_line == null)
+					break;
 				// eliminate preceding spaces
 				while (save_line.startsWith(" "))
 					save_line = save_line.substring(1);
@@ -2258,8 +2239,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					parsing = "individual";
 					save_line = save_line.substring(20);
 				}
-				while (save_line.equals(""))
+				// skip empty lines
+				while (save_line != null && save_line.equals(""))
 					save_line = in.readLine();
+				if (save_line == null)
+					break;
+				// eliminate preceding spaces
 				while (save_line.startsWith(" "))
 					save_line = save_line.substring(1);
 				if (parsing.equals("spawn messages")) {
@@ -2286,11 +2271,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					if (global_set == null)
 						global_set = new SettingsSet();
 					// read!
-					if (save_line.toLowerCase().startsWith("Do you want players to automatically teleport to their homes when they respawn?"))
+					if (save_line.startsWith("Do you want players to automatically teleport to their homes when they respawn?"))
 						global_set =
 								global_set.setHomeOnDeath(getResponse(sender, save_line.substring(79), in.readLine(),
 										"Right now, players automatically teleport home after they die."));
-					if (save_line.toLowerCase().startsWith("default warp message: "))
+					else if (save_line.toLowerCase().startsWith("default warp message: "))
 						global_set = global_set.setDefaultWarpMessage(save_line.substring(22));
 					else if (save_line.toLowerCase().startsWith("default no warp message: "))
 						global_set = global_set.setDefaultNoWarpMessage(save_line.substring(25));
@@ -2363,8 +2348,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							save_line = save_line.substring(1);
 						if (save_line.startsWith("Do you want players in this group to automatically teleport to their homes when they respawn?"))
 							group_set =
-									group_set.setHomeOnDeath(!getResponse(sender, save_line.substring(93), in.readLine(),
-											"Right now, players in this group automatically teleport homes after they die."));
+									group_set.setHomeOnDeath(getResponse(sender, save_line.substring(93), in.readLine(),
+											"Right now, players in this group automatically teleport home after they die."));
 						else if (save_line.toLowerCase().startsWith("default warp message: "))
 							group_set = group_set.setDefaultWarpMessage(save_line.substring(22));
 						else if (save_line.toLowerCase().startsWith("default no warp message: "))
@@ -2443,7 +2428,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							save_line = save_line.substring(1);
 						if (save_line.startsWith("Do you want " + parsing_player + " to automatically teleport to their home when they respawn?"))
 							player_set =
-									player_set.setHomeOnDeath(!getResponse(sender, save_line.substring(71 + parsing_player.length()), in.readLine(), "Right now, "
+									player_set.setHomeOnDeath(getResponse(sender, save_line.substring(71 + parsing_player.length()), in.readLine(), "Right now, "
 											+ parsing_player + " automatically teleports home after they die."));
 						else if (save_line.toLowerCase().startsWith("default warp message: "))
 							player_set = player_set.setDefaultWarpMessage(save_line.substring(22));
@@ -2529,9 +2514,12 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				BufferedReader in = new BufferedReader(new FileReader(temp_file));
 				String save_line = in.readLine(), data_type = "", player = "";
 				while (save_line != null) {
-					if (save_line.equals(""))
-						continue;
-					else if (save_line.startsWith("==== "))
+					// skip empty lines
+					while (save_line != null && save_line.equals(""))
+						save_line = in.readLine();
+					if (save_line == null)
+						break;
+					if (save_line.startsWith("==== "))
 						data_type = save_line.substring(5, save_line.length() - 5);
 					else if (save_line.startsWith("== "))
 						player = save_line.split(" ")[1];
@@ -2816,7 +2804,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							group_set = global_set;
 						out.write("     " + group + ":");
 						out.newLine();
-						out.write("          Do you want players in this group to automatically teleport to their home when they respawn? ");
+						out.write("          Do you want players in this group to automatically teleport to their homes when they respawn? ");
 						out.newLine();
 						if (group_set.home_on_death)
 							out.write("             Right now, players in this group automatically teleport home after they die.");
@@ -3178,7 +3166,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Player player = (Player) sender;
 		// establish all the default values
 		boolean listed = false, restricted = true;
-		SettingsSet set = getSettings(player.getName());
+		SettingsSet set = getSettings(player);
 		String owner = player.getName(), warp_message =
 				set.default_warp.replaceAll("\\[warp\\]", parameters[extra_param].replaceAll("_", " ")).replaceAll("\\[owner\\]", owner), no_warp_message =
 				set.default_no_warp.replaceAll("\\[warp\\]", parameters[extra_param].replaceAll("_", " ")).replaceAll("\\[owner\\]", owner);
@@ -3640,19 +3628,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 						// change the info for any switches linked to that warp
 						int number_of_affected_switches = 0;
 						for (int i = 0; i < switches.size(); i++)
-							if (switches.get(i).getWarpName().equals(old_name) && switches.get(i).getWarpOwner().equals(old_owner)) {
+							if (switches.get(i).warp_name.equals(old_name) && switches.get(i).warp_owner.equals(old_owner)) {
 								number_of_affected_switches++;
 								UltraSwitch new_switch =
-										new UltraSwitch(name, owner, switches.get(i).getSwitchType(), switches.get(i).getCooldownTime(), switches.get(i).getMaxUses(),
-												switches.get(i).hasAGlobalCooldown(), switches.get(i).getCost(), switches.get(i).getExemptedPlayers(), switches.get(i).getX(),
-												switches.get(i).getY(), switches.get(i).getZ(), switches.get(i).getWorld());
+										new UltraSwitch(name, owner, switches.get(i).block, switches.get(i).cooldown_time, switches.get(i).max_uses,
+												switches.get(i).global_cooldown, switches.get(i).cost, switches.get(i).exempted_players);
 								switches.remove(i);
 								// find out where the new switch needs to be in
 								// the list to be properly alphabetized
 								insertion_index = 0;
 								for (UltraSwitch my_switch : switches)
-									if (my_switch.getWarpName().compareToIgnoreCase(warp.name) < 0
-											|| (my_switch.getWarpName().compareToIgnoreCase(warp.name) == 0 && my_switch.getWarpOwner().compareToIgnoreCase(warp.owner) <= 0))
+									if (my_switch.warp_name.compareToIgnoreCase(warp.name) < 0
+											|| (my_switch.warp_name.compareToIgnoreCase(warp.name) == 0 && my_switch.warp_owner.compareToIgnoreCase(warp.owner) <= 0))
 										insertion_index++;
 								switches.add(insertion_index, new_switch);
 							}
@@ -3802,7 +3789,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				} else
 					sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a group called \"" + config_target + ".\"");
 			} else {
-				SettingsSet set = getSettings(config_target);
+				// use the Player itself if they're online; if not, use their name
+				Player target = server.getPlayerExact(config_target);
+				SettingsSet set;
+				if (target == null)
+					set = getSettings(config_target);
+				else
+					set = getSettings(target);
 				if (change_warp_message) {
 					set = set.setDefaultWarpMessage(new_message);
 					if (player != null && player.getName().equals(config_target))
@@ -3913,7 +3906,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				} else
 					sender.sendMessage(ChatColor.RED + "Sorry, but I couldn't find a group called \"" + config_target + ".\"");
 			} else {
-				SettingsSet set = getSettings(config_target);
+				// use the Player itself if they're online; if not, use their name
+				Player target = server.getPlayerExact(config_target);
+				SettingsSet set;
+				if (target == null)
+					set = getSettings(config_target);
+				else
+					set = getSettings(target);
 				set = set.setMaxWarps(new_max_warps);
 				if (player != null && player.getName().equals(config_target))
 					if (new_max_warps != -1)
@@ -4165,7 +4164,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				sender.sendMessage(ChatColor.GREEN + "You deleted " + warp.owner + "'s warp \"" + warp.name + ".\"");
 			int switches_deleted = 0;
 			for (int i = 0; i < switches.size(); i++)
-				if (warp.name.equals(switches.get(i).getWarpName()) && warp.owner.equals(switches.get(i).getWarpOwner())) {
+				if (warp.name.equals(switches.get(i).warp_name) && warp.owner.equals(switches.get(i).warp_owner)) {
 					switches.remove(i);
 					i--;
 					switches_deleted++;
@@ -4519,86 +4518,66 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	private void linkWarp(int extra_param, CommandSender sender) {
 		Player player = (Player) sender;
-		// sign post=63, wall sign=68, lever=69, stone pressure plate=70, wooden
-		// pressure plate=72, stone button=77, wooden button = 143
 		Block target_block = player.getTargetBlock(null, 1024);
 		UltraWarp warp = null;
-		if (target_block != null
-				&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
-						|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
+		if (target_block != null && UltraSwitch.getSwitchType(target_block) != null) {
+			// check to make sure that that switch isn't already linked to something
+			for (UltraSwitch my_switch : switches)
+				if (target_block.getLocation().equals(my_switch.location) && UltraSwitch.getSwitchType(target_block).equals(my_switch.switch_type)) {
+					if (player.getName().equals(my_switch.warp_owner))
+						sender.sendMessage(ChatColor.RED + "This " + my_switch.switch_type + " is already linked to \"" + my_switch.warp_name + "\".");
+					else
+						sender.sendMessage(ChatColor.RED + "This " + my_switch.switch_type + " is already linked to " + my_switch.warp_owner + "'s \"" + my_switch.warp_name
+								+ "\".");
+					return;
+				}
 			warp = locateWarp(extra_param, sender);
 			if (warp != null && (player.getName().equals(warp.owner) || player.hasPermission("myultrawarps.link.other") || player.hasPermission("myultrawarps.admin"))) {
 				// search for non-default settings changes
-				boolean parse_cooldown_time = false, error = false, global = false;
-				double cost = 0, previous_number = -1;
+				boolean parse_cooldown_time = false, global = false;
+				double cost = 0;
 				int max_uses = 0, cooldown_time = 0;
+				String cooldown_time_string = null;
 				String[] exempted_players = new String[0];
 				for (int j = 0; j < parameters.length; j++) {
 					if (parameters[j].toLowerCase().startsWith("cooldown:")) {
 						parse_cooldown_time = true;
-						try {
-							previous_number = Double.parseDouble(parameters[j].substring(9));
-						} catch (NumberFormatException exception) {
-							error = true;
-							j = parameters.length;
-						}
+						cooldown_time_string = parameters[j].substring(9);
 					} else if (parameters[j].toLowerCase().startsWith("uses:")) {
 						parse_cooldown_time = false;
 						try {
 							max_uses = Integer.parseInt(parameters[j].substring(5));
 						} catch (NumberFormatException exception) {
-							error = true;
-							j = parameters.length;
+							sender.sendMessage(ChatColor.RED + "You can't use something \"" + parameters[j].substring(5) + "\" times!");
+							return;
 						}
 					} else if (parameters[j].equalsIgnoreCase("global:true")) {
 						parse_cooldown_time = false;
 						global = true;
 					} else if (parse_cooldown_time) {
-						try {
-							previous_number = Double.parseDouble(parameters[j]);
-						} catch (NumberFormatException exception) {
-							if (parameters[j].equalsIgnoreCase("days"))
-								cooldown_time = (int) (cooldown_time + previous_number * 86400000);
-							else if (parameters[j].equalsIgnoreCase("hours"))
-								cooldown_time = (int) (cooldown_time + previous_number * 3600000);
-							else if (parameters[j].equalsIgnoreCase("minutes"))
-								cooldown_time = (int) (cooldown_time + previous_number * 60000);
-							else if (parameters[j].equalsIgnoreCase("seconds"))
-								cooldown_time = (int) (cooldown_time + previous_number * 1000);
-							else
-								error = true;
-						}
+						if (cooldown_time_string.equals(""))
+							cooldown_time_string = parameters[j];
+						else
+							cooldown_time_string += " " + parameters[j];
 					}
 				}
-				if (!error) {
-					// figure out the switch type
-					String switch_type = null;
-					if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
-						switch_type = "sign";
-					else if (target_block.getTypeId() == 69)
-						switch_type = "lever";
-					else if (target_block.getTypeId() == 70 || target_block.getTypeId() == 72)
-						switch_type = "pressure plate";
-					else
-						switch_type = "button";
-					// find out where the new switch needs to be in the list to
-					// be properly alphabetized
-					int insertion_index = 0;
-					for (UltraSwitch my_switch : switches)
-						if (my_switch.getWarpName().compareToIgnoreCase(warp.name) < 0
-								|| (my_switch.getWarpName().compareToIgnoreCase(warp.name) == 0 && my_switch.getWarpOwner().compareToIgnoreCase(warp.owner) <= 0))
-							insertion_index++;
-					// make the switch
-					switches.add(insertion_index, new UltraSwitch(warp.name, warp.owner, switch_type, cooldown_time, max_uses, global, cost, exempted_players, target_block
-							.getLocation().getX(), target_block.getLocation().getY(), target_block.getLocation().getZ(), target_block.getLocation().getWorld()));
-					if (autosave_switches)
-						saveTheSwitches(sender, false);
-					if (player.getName().toLowerCase().startsWith(warp.owner.toLowerCase()))
-						player.sendMessage(ChatColor.GREEN + "You linked \"" + warp.name + "\" to this " + switch_type + ".");
-					else
-						player.sendMessage(ChatColor.GREEN + "You linked " + warp.owner + "'s \"" + warp.name + "\" to this " + switch_type + ".");
-				} else
-					player.sendMessage(ChatColor.RED + "Don't mix numbers with letters. Try again please.");
+				// get the cooldown time
+				if (cooldown_time_string != null)
+					cooldown_time = translateStringtoTimeInms(cooldown_time_string);
+				// find out where the new switch needs to be in the list to be properly alphabetized
+				int insertion_index = 0;
+				for (UltraSwitch my_switch : switches)
+					if (my_switch.warp_name.compareToIgnoreCase(warp.name) < 0
+							|| (my_switch.warp_name.compareToIgnoreCase(warp.name) == 0 && my_switch.warp_owner.compareToIgnoreCase(warp.owner) <= 0))
+						insertion_index++;
+				// make the switch
+				switches.add(insertion_index, new UltraSwitch(warp.name, warp.owner, target_block, cooldown_time, max_uses, global, cost, exempted_players));
+				if (autosave_switches)
+					saveTheSwitches(sender, false);
+				if (player.getName().toLowerCase().startsWith(warp.owner.toLowerCase()))
+					player.sendMessage(ChatColor.GREEN + "You linked \"" + warp.name + "\" to this " + UltraSwitch.getSwitchType(target_block) + ".");
+				else
+					player.sendMessage(ChatColor.GREEN + "You linked " + warp.owner + "'s \"" + warp.name + "\" to this " + UltraSwitch.getSwitchType(target_block) + ".");
 			} else if (warp != null)
 				player.sendMessage(ChatColor.RED + "You're not allowed to link warps that don't belong to you!");
 			else {
@@ -4608,7 +4587,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					player.sendMessage(ChatColor.RED + "I couldn't find \"" + name + "\" in " + owner + "'s warps.");
 			}
 		} else if (target_block != null)
-			player.sendMessage(ChatColor.RED + "You can only link warps to buttons, pressure plates, or levers.");
+			player.sendMessage(ChatColor.RED + "You can only link warps to buttons, pressure plates (non-weighted), or levers.");
 		else
 			player.sendMessage(ChatColor.RED + "Please point at the switch you want to link your warp to and try " + ChatColor.GREEN + "/link " + ChatColor.RED + "again.");
 	}
@@ -4802,11 +4781,11 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			ArrayList<UltraWarp> switch_warps = new ArrayList<UltraWarp>();
 			ArrayList<Integer> switch_warp_quantities = new ArrayList<Integer>();
 			for (int i = 0; i < switches.size(); i++) {
-				if (switches.get(i).getWarpOwner().equals(player.getName())) {
+				if (switches.get(i).warp_owner.equals(player.getName())) {
 					// locate the warp
 					UltraWarp warp = null;
 					for (UltraWarp my_warp : warps)
-						if (my_warp.name.equals(switches.get(i).getWarpName()) && my_warp.owner.equals(switches.get(i).getWarpOwner()))
+						if (my_warp.name.equals(switches.get(i).warp_name) && my_warp.owner.equals(switches.get(i).warp_owner))
 							warp = my_warp;
 					if (warp == null) {
 						switches.remove(i);
@@ -4862,7 +4841,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				// find all the switches linked to the specified warp
 				ArrayList<UltraSwitch> temp = new ArrayList<UltraSwitch>();
 				for (UltraSwitch my_switch : switches)
-					if (my_switch.getWarpOwner().equals(owner) && my_switch.getWarpName().toLowerCase().startsWith(name.toLowerCase()))
+					if (my_switch.warp_owner.equals(owner) && my_switch.warp_name.toLowerCase().startsWith(name.toLowerCase()))
 						temp.add(my_switch);
 				if (temp.size() == 0) {
 					if (player == null)
@@ -4881,38 +4860,26 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				}
 			} else
 				player.sendMessage(ChatColor.RED + "You don't have permission to see info on other people's switches.");
-		} else if (target_block != null
-				&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
-						|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
+		} else if (target_block != null && UltraSwitch.getSwitchType(target_block) != null) {
 			// get information by the switch the player is pointing at
 			UltraSwitch switch_found = null;
-			String block_type;
-			if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
-				block_type = "sign";
-			else if (target_block.getTypeId() == 69)
-				block_type = "lever";
-			else if (target_block.getTypeId() == 70 || target_block.getTypeId() == 72)
-				block_type = "pressure plate";
-			else
-				block_type = "button";
 			for (UltraSwitch my_switch : switches)
-				if (my_switch.getX() == target_block.getX() && my_switch.getY() == target_block.getY() && my_switch.getZ() == target_block.getZ()
-						&& my_switch.getWorld().equals(target_block.getWorld()) && my_switch.getSwitchType().equals(block_type))
+				if (my_switch.x == target_block.getX() && my_switch.y == target_block.getY() && my_switch.z == target_block.getZ()
+						&& my_switch.world.equals(target_block.getWorld()) && my_switch.switch_type.equals(UltraSwitch.getSwitchType(target_block)))
 					switch_found = my_switch;
 			if (switch_found != null
-					&& (player == null || switch_found.getWarpOwner().equals(player.getName()) || player.hasPermission("myultrawarps.switchinfo.other") || player
-							.hasPermission("myultrawarps.admin"))) {
+					&& (player == null || switch_found.warp_owner.equals(player.getName()) || player.hasPermission("myultrawarps.switchinfo.other") || player
+							.hasPermission("myultrawarps.admin")))
 				if (player == null)
 					console.sendMessage(ChatColor.WHITE + switch_found.save_line);
 				else
 					player.sendMessage(ChatColor.WHITE + switch_found.save_line);
-			} else if (switch_found == null) {
-
+			else if (switch_found == null)
 				if (player == null)
-					console.sendMessage(ChatColor.GREEN + "There are no warps linked to this " + block_type + ".");
+					console.sendMessage(ChatColor.GREEN + "There are no warps linked to this " + UltraSwitch.getSwitchType(target_block) + ".");
 				else
-					player.sendMessage(ChatColor.GREEN + "There are no warps linked to this " + block_type + ".");
-			} else
+					player.sendMessage(ChatColor.GREEN + "There are no warps linked to this " + UltraSwitch.getSwitchType(target_block) + ".");
+			else
 				player.sendMessage(ChatColor.RED + "You don't have permission to see info on other people's switches.");
 		} else if (!(sender instanceof Player))
 			console.sendMessage(ChatColor.RED + "You must specify a warp for me to check if any switches are linked to it.");
@@ -5040,77 +5007,71 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		Player player = null;
 		if (sender instanceof Player)
 			player = (Player) sender;
-		// sign post=63, wall sign=68, lever=69, stone pressure plate=70, wooden
-		// pressure plate=72, stone button=77, wooden button=143
 		Block target_block = null;
 		if (player != null)
 			target_block = player.getTargetBlock(null, 1024);
 		if (parameters.length > extra_param) {
 			// unlink all switches associated with a warp
-			locateWarp(extra_param, sender);
-			if (owner != null) {
-				if (player == null || (player.getName().equals(owner)) || player.hasPermission("myultrawarps.unlink.other") || player.hasPermission("myultrawarps.admin")) {
+			UltraWarp warp = locateWarp(extra_param, sender);
+			if (warp.owner != null) {
+				if (player == null || (player.getName().equals(warp.owner)) || player.hasPermission("myultrawarps.unlink.other") || player.hasPermission("myultrawarps.admin")) {
 					// locate the switches as specified and delete them
+					int number_of_switches_unlinked = 0;
 					for (int i = 0; i < switches.size(); i++) {
-						if (switches.get(i).getWarpName().toLowerCase().startsWith(name.toLowerCase()) && switches.get(i).getWarpOwner().equals(owner)) {
+						if (switches.get(i).warp_name.equals(warp.name) && switches.get(i).warp_owner.equals(warp.owner)) {
 							switches.remove(i);
 							i--;
+							number_of_switches_unlinked++;
 						}
 					}
 					if (autosave_switches)
 						saveTheSwitches(sender, false);
-					if (player == null)
-						console.sendMessage(ChatColor.GREEN + "I unlinked all of the switches linked to " + owner + "'s warp \"" + name + ".\"");
-					else if (player.getName().equals(owner))
-						player.sendMessage(ChatColor.GREEN + "I unlinked all the switches linked to \"" + name + ".\"");
+					String full_warp_name = "\"" + warp.name + "\"";
+					if (player == null || !player.getName().equals(warp.owner))
+						full_warp_name = warp.owner + "'s \"" + warp.name + "\"";
+					if (number_of_switches_unlinked == 0)
+						sender.sendMessage(ChatColor.RED + "There are no switches linked to " + full_warp_name + "!");
+					else if (number_of_switches_unlinked == 1)
+						sender.sendMessage(ChatColor.GREEN + "I unlinked the one switch linked to " + full_warp_name + ".");
 					else
-						player.sendMessage(ChatColor.GREEN + "I unlinked all of the switches linked to " + owner + "'s warp \"" + name + ".\"");
+						sender.sendMessage(ChatColor.GREEN + "I unlinked the " + number_of_switches_unlinked + " switches linked to " + full_warp_name + ".");
 				} else
-					player.sendMessage(ChatColor.RED + "You don't have permission to unlink other people's switches.");
+					sender.sendMessage(ChatColor.RED + "You don't have permission to unlink other people's switches.");
 			} else
-				console.sendMessage(ChatColor.RED + "You need to specify the owner's name. I can't look through your own warps! You're a console!");
-		} else if (target_block != null
-				&& (target_block.getTypeId() == 63 || target_block.getTypeId() == 68 || target_block.getTypeId() == 69 || target_block.getTypeId() == 70
-						|| target_block.getTypeId() == 72 || target_block.getTypeId() == 77 || target_block.getTypeId() == 143)) {
+				sender.sendMessage(ChatColor.RED + "You need to specify the owner's name. I can't look through your own warps! You're a console!");
+		} else if (target_block != null && UltraSwitch.getSwitchType(target_block) != null) {
 			if (player != null) {
 				// unlink a single switch
 				int index = -1;
-				String block_type;
-				if (target_block.getTypeId() == 63 || target_block.getTypeId() == 68)
-					block_type = "sign";
-				else if (target_block.getTypeId() == 69)
-					block_type = "lever";
-				else if (target_block.getTypeId() == 77 || target_block.getTypeId() == 143)
-					block_type = "button";
-				else
-					block_type = "pressure plate";
 				for (int i = 0; i < switches.size(); i++)
-					if (target_block.getX() == switches.get(i).getX() && target_block.getY() == switches.get(i).getY() && target_block.getZ() == switches.get(i).getZ()
-							&& switches.get(i).getWorld().equals(target_block.getWorld()) && switches.get(i).getSwitchType().equals(block_type))
+					if (switches.get(i).location.equals(target_block.getLocation()) && switches.get(i).switch_type.equals(UltraSwitch.getSwitchType(target_block))) {
 						index = i;
+						break;
+					}
 				if (index != -1
-						&& (player.getName().equals(switches.get(index).getWarpOwner()) || player.hasPermission("myultrawarps.unlink.other") || player
+						&& (player.getName().equals(switches.get(index).warp_owner) || player.hasPermission("myultrawarps.unlink.other") || player
 								.hasPermission("myultrawarps.admin"))) {
-					if (player.getName().equals(switches.get(index).getWarpOwner()))
-						player.sendMessage(ChatColor.GREEN + "You unlinked \"" + switches.get(index).getWarpName() + "\" from this " + block_type + ".");
+					if (player.getName().equals(switches.get(index).warp_owner))
+						sender.sendMessage(ChatColor.GREEN + "You unlinked \"" + switches.get(index).warp_name + "\" from this " + UltraSwitch.getSwitchType(target_block)
+								+ ".");
 					else
-						player.sendMessage(ChatColor.GREEN + "You unlinked " + switches.get(index).getWarpOwner() + "'s \"" + switches.get(index).getWarpName()
-								+ "\" from this " + block_type + ".");
+						sender.sendMessage(ChatColor.GREEN + "You unlinked " + switches.get(index).warp_owner + "'s \"" + switches.get(index).warp_name + "\" from this "
+								+ UltraSwitch.getSwitchType(target_block) + ".");
 					switches.remove(index);
 					if (autosave_switches)
 						saveTheSwitches(sender, false);
 				} else if (index == -1)
-					player.sendMessage(ChatColor.RED + "That " + block_type + " doesn't have a warp linked to it.");
+					sender.sendMessage(ChatColor.RED + "That " + UltraSwitch.getSwitchType(target_block) + " doesn't have a warp linked to it.");
 				else
-					player.sendMessage(ChatColor.RED + "You're not allowed to unlink other people's warps.");
+					sender.sendMessage(ChatColor.RED + "You're not allowed to unlink other people's warps.");
 
 			} else
 				console.sendMessage(ChatColor.RED
 						+ "You need to specify the warp that you want to unlink all switches from because you can't point out a specific switch to me...'cause you're a console!");
 		} else if (player != null)
-			player.sendMessage(ChatColor.RED + "You can either point out a switch you want to unlink a warp from or specify a warp that I will unlink all switches from.");
+			sender.sendMessage(ChatColor.RED + "You can either point out a switch you want to unlink a warp from or specify a warp that I will unlink all switches from.");
 		else
-			console.sendMessage(ChatColor.RED
+			sender.sendMessage(ChatColor.RED
 					+ "You need to specify the warp that you want to unlink all switches from because you can't point out a specific switch to me...'cause you're a console!");
 	}
 
@@ -5253,28 +5214,18 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				&& (player == null || player.getName().equals(owner) || player.hasPermission("myultrawarps.warpinfo.other") || player.hasPermission("myultrawarps.admin"))) {
 			String info = warp.save_line;
 			// insert ChatColor.WHITE at the end of warp and no warp messages
-			for (int i = 0; i < info.length(); i++) {
-				if (info.length() > i + warp.warp_message.length() && info.substring(i, i + warp.warp_message.length() + 1).equals(warp.warp_message + "\"")) {
-					String previous_text = info.substring(0, i + warp.warp_message.length());
-					String next_text = info.substring(i + warp.warp_message.length());
-					info = previous_text + "&f" + next_text;
-				} else if (info.length() > i + warp.no_warp_message.length() && info.substring(i, i + warp.no_warp_message.length() + 1).equals(warp.no_warp_message + "\"")) {
-					String previous_text = info.substring(0, i + warp.no_warp_message.length());
-					String next_text = info.substring(i + warp.no_warp_message.length());
-					info = previous_text + "&f" + next_text;
-				}
-			}
-			sender.sendMessage(colorCode(info));
+			info =
+					info.replaceAll("\"" + warp.warp_message + "\"", "\"" + warp.warp_message + "&f\"").replaceAll("\"" + warp.no_warp_message + "\"",
+							"\"" + warp.no_warp_message + "&f\"");
+			sender.sendMessage(ChatColor.WHITE + colorCode(info));
 		} else if (warp != null)
 			player.sendMessage(ChatColor.RED + "You don't have permission to view information about this warp.");
 		else {
 			// tell the player the warp wasn't found
-			if (player != null && player.getName().equals(owner))
+			if ((player != null && player.getName().equals(owner)) || owner == null)
 				player.sendMessage(ChatColor.RED + "I couldn't find \"" + name + ".\"");
-			else if (owner != null)
-				sender.sendMessage(ChatColor.RED + "I couldn't find \"" + name + "\" in " + owner + "'s warps.");
 			else
-				sender.sendMessage(ChatColor.RED + "I couldn't find \"" + name + ".\"");
+				sender.sendMessage(ChatColor.RED + "I couldn't find \"" + name + "\" in " + owner + "'s warps.");
 		}
 	}
 
@@ -5390,7 +5341,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player.sendMessage(ChatColor.RED + "I couldn't find \"" + world_name + ".\"");
 	}
 
-	private void warpsAround(int extra_param, CommandSender sender, String command_label) {
+	private void warpsAround(int extra_param, CommandSender sender) {
 		Player player = null;
 		if (sender instanceof Player)
 			player = (Player) sender;
