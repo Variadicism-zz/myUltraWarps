@@ -93,10 +93,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	private static Permission permissions = null;
 	private static Economy economy = null;
 
-	// TODO FOR ALL PLUGINS: get rid of the "failed" boolean in saving and loading stuff
 	// TODO FOR ALL PLUGINS: on loading stuff, if the file didn't exist, don't say you loaded the stuff. That's a lie.
-	// TODO FOR ALL PLUGINS: search for "while (save_line != null)" and put
-	// "while (save_line != null && save_line.equals("")) save_line = in.readLine(); if (save_line == null) break;" after all of them.
 
 	// TODO trying to make temp.txt unmodifiable
 	// TODO: make /trust
@@ -1580,6 +1577,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		return true;
 	}
 
+	/**
+	 * This method simply checks to see if the Object <b><tt>object</b></tt> is listed in the array <b><tt>objects</b></tt>.
+	 * 
+	 * @param objects
+	 *            is the array through which this method will search for <b><tt>object</b></tt>.
+	 * @param object
+	 *            is the Object which this method will search for in <b><tt>objects</b></tt>.
+	 * @return <b>true</b> if <b><tt>objects</b></tt> contains <b><tt>object</b></tt> or <b>false</b> if <b><tt>objects</b></tt> does not contain <b>
+	 *         <tt>object</b></tt>.
+	 */
 	public static boolean arrayContains(Object[] objects, Object object) {
 		for (Object listed_object : objects)
 			if (listed_object.equals(objects))
@@ -2555,12 +2562,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 					save_line = in.readLine();
 				}
 				in.close();
+				temp_file.setWritable(true);
+				temp_file.delete();
 			} catch (IOException exception) {
 				console.sendMessage(ChatColor.DARK_RED + "I got an IOException while trying to load the temporary data.");
 				exception.printStackTrace();
 				return;
 			}
-		temp_file.delete();
 	}
 
 	// saving
@@ -2917,20 +2925,15 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 	 * called using a command. It is executed only when myUltraWarps is enabled and does not display any confirmational messages.
 	 */
 	private void saveTheTemporaryData() {
-		// check the temporary file
 		File temp_file = new File(getDataFolder(), "temp.txt");
-		if (!temp_file.exists()) {
-			getDataFolder().mkdir();
-			try {
-				temp_file.createNewFile();
-			} catch (IOException exception) {
-				console.sendMessage(ChatColor.DARK_RED + "I couldn't create a temp.txt file! Oh nos!");
-				exception.printStackTrace();
-				return;
-			}
-		}
-		// save the warp and death histories
 		try {
+			// check the temporary file
+			if (!temp_file.exists()) {
+				getDataFolder().mkdir();
+				temp_file.createNewFile();
+			}
+			temp_file.setWritable(true);
+			// save the temporary data
 			BufferedWriter out = new BufferedWriter(new FileWriter(temp_file));
 			out.write("==== warp histories ====");
 			out.newLine();
@@ -4689,7 +4692,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
 	/**
 	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/home (owner's)</i>. <b><tt>Sender</b></tt> must be a Player for this method to be
-	 * called. This command teleports the player to their home or to the home of the specified player.
+	 * called. This command teleports the player to their "home" warp or to the home of the specified player.
 	 * 
 	 * @param sender
 	 *            is the Player who executed the command.
@@ -4725,6 +4728,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/link (owner's) [warp]</i>. <b><tt>Sender</b></tt> must be a Player for this method
+	 * to be called. This command links a warp to the switch that <b><tt>sender</b></tt> is pointing at. (You could also think of it as creating a new warp
+	 * switch ["UltraSwitch"]).
+	 * 
+	 * @param extra_param
+	 *            is equal to 0 if the command is used as one word (<i>/link</i> or <i>/linkwarp</i>) or 1 if the command is used as two words (<i>/link
+	 *            warp</i>).
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void linkWarp(int extra_param, CommandSender sender) {
 		Player player = (Player) sender;
 		Block target_block = player.getTargetBlock(null, 1024);
@@ -4801,6 +4815,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player.sendMessage(ChatColor.RED + "Please point at the switch you want to link your warp to and try " + ChatColor.GREEN + "/link " + ChatColor.RED + "again.");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/move (owner's) [warp]</i>. <b><tt>Sender</b></tt> must be a Player for this method
+	 * to be called. This command moves the specified warp to the spot where <b><tt>sender</b></tt> is standing.
+	 * 
+	 * @param extra_param
+	 *            is equal to 0 if the command is used as one word (<i>/move</i> or <i>/movewarp</i>) or 1 if the command is used as two words (<i>/move
+	 *            warp</i>).
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void moveWarp(int extra_param, CommandSender sender) {
 		Player player = (Player) sender;
 		UltraWarp warp = locateWarp(extra_param, sender);
@@ -4823,6 +4847,15 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player.sendMessage(ChatColor.RED + "I couldn't find \"" + name + "\" in " + owner + "'s warps.");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/send [player] ("to") ["there"/"warp" (owner's) [warp]/"player" [player]]</i>. This
+	 * command teleports the specified player either to the spot that <b><tt>sender</b></tt> is pointing at (using "there"), the specified warp (using "warp"
+	 * [warp]), or the specified target player (using "player" [player]). <b><tt>Sender</b></tt> must be a Player if they attempt to send the target player
+	 * "there".
+	 * 
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void send(CommandSender sender) {
 		Player player = null;
 		if (sender instanceof Player)
@@ -4921,6 +4954,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		}
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/set home (owner's)</i>. <b><tt>Sender</b></tt> must be a Player for this method to
+	 * be called. This command creates a specialized warp called "home" for the designated player (<b><tt>sender</b></tt>'s by default) which has special
+	 * default warp and no warp messages, a teleportation command that works specifically for it (<i>/home</i>; see {@link #home(CommandSender)
+	 * home(CommandSender)}), command nodes specific to it (myultrawarps.home, myultrawarps.sethome, and more), and the special ability to let players
+	 * automatically teleport to it when they respawn after dying (if the player has the permission myultrawarps.respawnhome and the settings for that player in
+	 * the <tt>config.txt</tt> allows for it).
+	 * 
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void setHome(CommandSender sender) {
 		Player player = (Player) sender;
 		int extra_param = 0;
@@ -4952,6 +4996,14 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player.sendMessage(ChatColor.RED + "You can't set someone else's home!");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/set spawn</i>. <b><tt>Sender</b></tt> must be a Player for this method to be
+	 * called. This command sets the location of the spawn point for the world which <b><tt>sender</b></tt> is currently in to <b><tt>sender</b></tt>'s current
+	 * location.
+	 * 
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void setSpawn(CommandSender sender) {
 		Player player = (Player) sender;
 		player.getWorld().setSpawnLocation(player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ());
@@ -4965,6 +5017,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 		player.sendMessage(ChatColor.GREEN + "Henceforth, this shall be " + world_name + "'s new spawn point.");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/spawn</i>. <b><tt>Sender</b></tt> must be a Player for this method to be called.
+	 * This command teleports <b><tt>sender</b></tt> to the spawn point for the world that they are currently in.
+	 * 
+	 * @param sender
+	 *            is the Player who executed the command.
+	 */
 	private void spawn(CommandSender sender) {
 		Player player = (Player) sender;
 		String world_name = player.getWorld().getWorldFolder().getName();
@@ -4979,6 +5038,16 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 				new UltraWarp(warp_message, player.getWorld().getSpawnLocation()), true, null);
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/switch list</i>. If <b><tt>sender</b></tt> is a Player, this command lists all of
+	 * the switches owned by <b><tt>sender</b></tt>; if <b><tt>sender</b></tt> is a <tt>console</tt>, then this command will redirect to <i>/full switch
+	 * list</i> (see {@link #fullSwitchList(CommandSender) fullSwitchList(CommandSender)}). The list in either case is displayed based on the warp that is
+	 * linked to that switch and the number of switches linked to that warp. For example, if <b><tt>sender</b></tt> had a warp called "herkaderkala" that was
+	 * linked to two switches, one of the items in the list would be displayed as "herkaderkala x2".
+	 * 
+	 * @param sender
+	 *            is the Player or <tt>console</tt> who executed the command.
+	 */
 	private void switchList(CommandSender sender) {
 		Player player = null;
 		String output = "";
@@ -5034,6 +5103,17 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			sender.sendMessage(ChatColor.RED + "No one has made any switches yet!");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/switch info (owner's) (warp)</i>. This command displays all information pertaining
+	 * to the switch(es) specified. If a warp is designated, all switches linked to the designated warp will be specified and the information on all of them
+	 * given; if no warp is designated, the switch that <b><tt>sender</b></tt> is pointing at (which only works if <b><tt>sender</b></tt> is a Player) is
+	 * specified and the information pertaining to that specific switch will be displayed.
+	 * 
+	 * @param extra_param
+	 *            is equal to 0 if the command is used as one word (<i>/switchinfo</i>) or 1 if the command is used as two words (<i>/switch warp</i>).
+	 * @param sender
+	 *            is the Player or <tt>console</tt> who executed the command.
+	 */
 	private void switchInfo(int extra_param, CommandSender sender) {
 		// sign post=63, wall sign=68, lever=69, stone pressure plate=70, wooden
 		// pressure plate=72, stone button=77, wooden button = 143
@@ -5096,6 +5176,13 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 			player.sendMessage(ChatColor.RED + "You must either specify a warp for me to check or point at a switch for me to check.");
 	}
 
+	/**
+	 * This method is called when <b><tt>sender</tt></b> uses the command <i>/to [player]</i>. <b><tt>Sender</b></tt> must be a Player for this method to be
+	 * called. This command teleports <b><tt>sender</b></tt> to the specified player.
+	 * 
+	 * @param sender
+	 *            is the Player or <tt>console</tt> who executed the command.
+	 */
 	private void to(CommandSender sender) {
 		Player player = (Player) sender;
 		// find the target player
