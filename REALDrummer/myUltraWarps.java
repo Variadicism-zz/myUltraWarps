@@ -492,7 +492,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 							.hasPermission("myultrawarps.admin")) && parameters.length > 0)
 				createWarp(0, sender);
 			else if (!(sender instanceof Player))
-				console.sendMessage(ChatColor.RED + "Silly console! You can't make a warp! You have no body! :P");
+				console.sendMessage(ChatColor.RED + "Silly console! You can't make a warp to your current location! You have no body! :P");
 			else if (parameters.length == 0)
 				sender.sendMessage(ChatColor.RED + "You forgot to tell me what you want to name the warp!");
 			else
