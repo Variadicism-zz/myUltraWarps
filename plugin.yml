@@ -1,6 +1,6 @@
 name: myUltraWarps
 main: REALDrummer.myUltraWarps
-version: 7.4
+version: 7.7
 softdepend: [Vault]
 description: >
              This super simple plugin has so many features your head may just implode.
@@ -24,22 +24,22 @@ commands:
       aliases: [modify]
       description: This command modifies properties of an existing warp.
       usage: |
-           /<command> ("warp") (owner's) [warp] (name:[new name]) (type:[open/secret/advertised/private]) (warp:[message]) (nowarp:[message]) (giveto:[player])
+           /<command> ("warp") (owner's) [warp] (settings)
    changewarp:
       aliases: [modifywarp]
       description: This command modifies properties of an existing warp.
       usage: |
-           /<command> (owner's) [warp] (name:[new name]) (type:[open/secret/advertised/private]) (warp:[message]) (nowarp:[message]) (giveto:[player])
+           /<command> (owner's) [warp] (settings)
    create:
       aliases: [make, set, new, add]
       description: This command creates a named warp at your current location.
       usage: |
-           /<command> ("warp") [warp] (type:[open/secret/advertised/private]) (warp:[message]) (nowarp:[message]) (giveto:[player])
+           /<command> ("warp") [warp] (settings)
    createwarp:
       aliases: [makewarp, setwarp, newwarp, addwarp]
       description: This command creates a named warp at your current location.
       usage: |
-           /<command> [warp] (type:[open/secret/advertised/private]) (warp:[message]) (nowarp:[message]) (giveto:[player])
+           /<command> [warp] (settings)
    death:
       aliases: []
       description: This command teleports you back through your death history.
