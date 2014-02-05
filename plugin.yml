@@ -1,6 +1,6 @@
 name: myUltraWarps
 main: REALDrummer.myUltraWarps
-version: 7.7
+version: 7.9
 softdepend: [Vault]
 description: >
              This super simple plugin has so many features your head may just implode.
@@ -81,12 +81,12 @@ commands:
       usage: |
            /<command> warp(s) list OR /<command> switch(es) list
    fullswitchlist:
-      aliases: [entireswitchlist, completeswitchlist, fullswitcheslist, entireswitcheslist, completeswitcheslist]
+      aliases: [entireswitchlist, completeswitchlist, fullswitcheslist, entireswitcheslist, completeswitcheslist, fsl, csl, esl]
       description: This command lists all the switches.
       usage: |
            /<command>
    fullwarplist:
-      aliases: [entirewarplist, completewarplist, fullwarpslist, entirewarpslist, completewarpslist]
+      aliases: [entirewarplist, completewarplist, fullwarpslist, entirewarpslist, completewarpslist, fwl, cwl, ewl]
       description: This command lists all the warps.
       usage: |
            /<command>
