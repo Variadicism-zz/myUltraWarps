@@ -3496,16 +3496,23 @@ public class myUltraWarps extends JavaPlugin implements Listener {
                 sender.sendMessage(ChatColor.RED + "Since when is \"" + parameters[0] + "\" an integer?");
                 return;
             }
-        ArrayList<UltraWarp> my_warp_histories = warp_histories.get(player.getName());
+
+        // get the player's warp history
+        ArrayList<UltraWarp> warp_history = warp_histories.get(player.getName());
+        if (warp_history == null || warp_history.size() == 0) {
+            sender.sendMessage(ChatColor.RED + "You haven't warped anywhere yet!");
+            return;
+        }
+
         Integer last_warp_index = last_warp_indexes.get(player.getName());
         // default the last warp index to the latest warp in the warp history
         if (last_warp_index == null)
-            last_warp_index = my_warp_histories.size() - 1;
+            last_warp_index = warp_history.size() - 1;
         UltraWarp last_warp = null;
-        if (my_warp_histories != null && last_warp_index >= amount)
-            last_warp = my_warp_histories.get(last_warp_index - amount);
+        if (warp_history != null && last_warp_index >= amount)
+            last_warp = warp_history.get(last_warp_index - amount);
         else {
-            if (my_warp_histories == null || my_warp_histories.size() == 0)
+            if (warp_history == null || warp_history.size() == 0)
                 sender.sendMessage(ChatColor.RED + "You haven't warped anywhere yet!");
             else if (last_warp_index > 1)
                 sender.sendMessage(ChatColor.RED + "You can only go back " + last_warp_index + " more warps.");
