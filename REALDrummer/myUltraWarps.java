@@ -3,6 +3,7 @@ package REALDrummer;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -10,11 +11,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.UUID;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -23,6 +26,8 @@ import javax.xml.stream.events.XMLEvent;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+
+import com.evilmidget38.UUIDFetcher;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -95,6 +100,8 @@ public class myUltraWarps extends JavaPlugin implements Listener {
     private static Permission permissions = null;
     private static Economy economy = null;
 
+    public HashMap<String, UUID> UUIDs = new HashMap<String, UUID>();
+
     // TODO FOR ALL PLUGINS: on loading stuff, if the file didn't exist, don't say you loaded the stuff. That's a lie.
     // TODO FOR ALL PLUGINS: encompass the complete inside of all methods that can run outside of other methods (onEnable, onDisable, command/run operators, and
     // listeners) in a try/catch block with an Exception parameter to inform ops of ANY errors in ANY
@@ -102,7 +109,6 @@ public class myUltraWarps extends JavaPlugin implements Listener {
     // TODO FOR ALL PLUGINS: make sure all .replaceAll()s are my custom ones, not Java's String.replaceAll()
 
     // TODO FOR 7.8: finish documenting everything, including adding @params for "parameters" in many of the command methods
-    // TODO FOR 7.8: fix unrestricted warp message issues
     // TODO FOR 8: make a series of tutorial videos explaining the different features of myUltraWarps; if the video for a part is not done yet, make a video that
     // starts with "Coming soon to a server near you!", then after a few seconds transitions into Nyan Cat with a Steve face
     // TODO: make the group settings remain as they are if Vault doesn't exist instead of letting them disappear
@@ -134,6 +140,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
             loadTheConfig(console);
             loadTheWarps(console);
             loadTheSwitches(console);
+            loadTheUniqueIDs(console);
             loadTheTemporaryData();
             if (auto_update)
                 checkForUpdates(console);
@@ -402,6 +409,7 @@ public class myUltraWarps extends JavaPlugin implements Listener {
             saveTheWarps(console, true);
             saveTheSwitches(console, true);
             saveTheConfig(console, true);
+            saveTheUniqueIDs(console, true);
             saveTheTemporaryData();
             // done disabling
             String[] disable_messages =
@@ -1875,6 +1883,54 @@ public class myUltraWarps extends JavaPlugin implements Listener {
 
     // listeners
     @EventHandler
+    public void captureAndHandleUUIDStuff(PlayerJoinEvent event) {
+        // if the user's name was "sniped", change the owner of the user's old warps to the UUID of the original owner
+        if (UUIDs.containsKey(event.getPlayer().getName()) && !UUIDs.get(event.getPlayer().getName()).equals(event.getPlayer().getUniqueId())) {
+            UUID old_ID = UUIDs.get(event.getPlayer().getName());
+            for (UltraWarp warp : warps)
+                if (warp.owner.equals(event.getPlayer().getName()))
+                    warp.owner = old_ID.toString();
+            tellOps(ChatColor.GREEN + "myUltraWarps has prevented username sniping takeover!\n" + event.getPlayer().getName() + " is not the same "
+                    + event.getPlayer().getName() + " you once new, but a different person!\nI changed all of " + event.getPlayer().getName()
+                    + "'s warps so that this new person can't use them and when the old " + event.getPlayer().getName()
+                    + " logs back in, I will change all their warps to work for them with their new username.", true);
+        } // if the user is new to the server, log their UUID
+        else if (!UUIDs.containsKey(event.getPlayer().getName())) {
+            debug("detected new player: " + event.getPlayer().getName() + "; logging UUID (" + event.getPlayer().getUniqueId() + ")...");
+            UUIDs.put(event.getPlayer().getName(), event.getPlayer().getUniqueId());
+
+            // if the user was one of the users whose username was sniped, change their warps' "owner" property to their new username
+            for (UltraWarp warp : warps)
+                if (warp.owner.equals(event.getPlayer().getUniqueId().toString())) {
+                    debug("found UUID owner corresponding to " + event.getPlayer().getName() + "; changing warp \"" + warp.name + "\" owner...");
+                    warp.owner = event.getPlayer().getName();
+                }
+        } // if the user changed their username, change their warps accordingly
+        else if (UUIDs.containsValue(event.getPlayer().getUniqueId()) && !UUIDs.containsKey(event.getPlayer().getName())) {
+            debug("detected changed username: " + event.getPlayer().getName() + "; finding old value...");
+
+            String old_username = null;
+            for (String key : UUIDs.keySet())
+                if (UUIDs.get(key).equals(event.getPlayer().getUniqueId())) {
+                    old_username = key;
+                    break;
+                }
+            if (old_username == null) {
+                tellOps(ChatColor.DARK_RED + "I detected that " + event.getPlayer().getName() + " changed their username, but I couldn't find their old username!", true);
+                return;
+            }
+
+            debug("found " + event.getPlayer().getName() + "'s old username: " + old_username + "; changing warps ownerships accordingly...");
+            for (UltraWarp warp : warps)
+                if (warp.owner.equals(old_username) || warp.owner.equals(event.getPlayer().getUniqueId().toString())) {
+                    debug("found one of " + event.getPlayer().getName() + "'s warps: \"" + warp.name + "\"; updating owner...");
+                    warp.owner = event.getPlayer().getName();
+                }
+        } else
+            debug("confirmed " + event.getPlayer().getName() + "'s UUID");
+    }
+
+    @EventHandler
     public void teleportOnTargetChunkLoad(ChunkLoadEvent event) {
         for (String name : teleporting_players.keySet())
             if (server.getPlayerExact(name) == null) {
@@ -2926,6 +2982,60 @@ public class myUltraWarps extends JavaPlugin implements Listener {
             console.sendMessage(COLOR + sender.getName() + " loaded the myUltraWarps config from file.");
     }
 
+    private void loadTheUniqueIDs(CommandSender sender) {
+        try {
+            File UUID_file = new File(getDataFolder(), "uuids.raf");
+            if (!UUID_file.exists()) {
+                debug("no UUID file found; using UUIDFetcher...");
+
+                // find all the different owners of warps (usernames only)
+                ArrayList<String> owners = new ArrayList<String>();
+                for (UltraWarp warp : warps)
+                    // check the owner's length to make sure that the owner listed is a username, not a UUID
+                    if (warp.owner.length() < 16 && !owners.contains(warp.owner))
+                        owners.add(warp.owner);
+
+                // use evilmidget38's UUIDFetcher to retrieve the UUID of every username
+                try {
+                    debug("fetching UUIDs via UUIDFetcher...");
+                    UUIDs = new UUIDFetcher(owners).call();
+                    for (String player : UUIDs.keySet())
+                        debug(player + ": " + UUIDs.get(player));
+                } catch (Exception exception) {
+                    processException("The UUIDFetcher didn't work!", exception);
+                }
+
+                saveTheUniqueIDs(sender, false);
+
+                return;
+            }
+
+            try {
+                RandomAccessFile in = new RandomAccessFile(UUID_file, "r");
+                String line = in.readUTF();
+                while (line != null) {
+                    line = line.trim();
+                    debug("reading UUID info line: \"" + line + "\"");
+                    if (!line.contains(";")) {
+                        debug("UUID file line not properly formatted; line=\"" + line + "\"");
+                        continue;
+                    }
+                    UUIDs.put(line.substring(0, line.indexOf(';')), UUID.fromString(line.substring(line.indexOf(';') + 1)));
+                    line = in.readUTF();
+                }
+                in.close();
+            } catch (EOFException exception) {
+                debug("reached end of file; finishing load...");
+            }
+        } catch (IOException exception) {
+            processException("There was a problem trying to read the UUID file!", exception);
+            return;
+        } catch (IllegalArgumentException exception) {
+            processException("I couldn't read the UUID from this line!", exception);
+            return;
+        }
+    }
+
     /** This method loads important data from a read-only temporary file (<tt>temp.txt</tt>) when myUltraWarps is enabled. This data includes blocked and trusted players, info
      * messages concerning events such as broken warping switches, and more. When this method completes, the <tt>temp.txt</tt> file is deleted. Unlike other myUltraWarps
      * loading methods, this method cannot be called using a command. It is executed only when myUltraWarps is enabled and does not display any confirmational messages. */
@@ -3337,6 +3447,27 @@ public class myUltraWarps extends JavaPlugin implements Listener {
             sender.sendMessage(COLOR + "Your configurations have been saved.");
             if (sender instanceof Player)
                 console.sendMessage(COLOR + ((Player) sender).getName() + " saved the server's configurations to file.");
+        }
+    }
+
+    private void saveTheUniqueIDs(CommandSender sender, boolean display_message) {
+        try {
+            File UUID_file = new File(getDataFolder(), "uuids.raf");
+            if (!UUID_file.exists()) {
+                debug("no UUID file found; creating new file...");
+                UUID_file.createNewFile();
+            }
+
+            RandomAccessFile out = new RandomAccessFile(UUID_file, "rw");
+            for (String username : UUIDs.keySet()) {
+                String line = username + ";" + UUIDs.get(username).toString();
+                debug("writing UUID info: \"" + line + "\"");
+                out.writeUTF(line);
+            }
+            out.close();
+        } catch (IOException exception) {
+            processException("There was a problem trying to read the UUID file!", exception);
+            return;
         }
     }
 
